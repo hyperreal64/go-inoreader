@@ -75,12 +75,11 @@ func (cf *CfgFile) writeCfgFile() error {
 }
 
 // GetConfigContent ---
-func GetConfigContent() (*Configuration, error) {
+func (cf *Configuration) GetConfigContent() error {
 
-	configuration := &Configuration{}
-	if err := gonfig.GetConf(cf.FilePath, configuration); err != nil {
-		return nil, errors.Wrap(err, "Could not retrieve configuration contents")
+	if err := gonfig.GetConf(GetCfgFilePath(), cf); err != nil {
+		return errors.Wrap(err, "Could not retrieve configuration contents")
 	}
 
-	return configuration, nil
+	return nil
 }

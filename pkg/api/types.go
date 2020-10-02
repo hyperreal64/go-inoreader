@@ -145,3 +145,69 @@ type UserStateComGoogleRoot struct {
 	ID    string `json:"id"`
 	Value string `json:"value"`
 }
+
+// BEGIN REQUEST PARAMETER TYPES
+
+// QuickAddParams ---
+type QuickAddParams struct {
+	QuickAdd string `url:"quickadd"`
+}
+
+// EditSubParams ---
+type EditSubParams struct {
+	Action        string `url:"ac"`
+	StreamID      string `url:"s"`
+	Title         string `url:"t"`
+	AddToFolder   string `url:"a"`
+	RemFromFolder string `url:"r"`
+}
+
+// FolderTagListParams ---
+type FolderTagListParams struct {
+	Types  string `url:"types"`
+	Counts string `url:"counts"`
+}
+
+// ContentsParams --- for StreamContents and ItemIDs parameters
+type ContentsParams struct {
+	NumOfItems                string `url:"n"`
+	Order                     string `url:"r"`
+	StartTime                 string `url:"ot"`
+	ExcludeTarget             string `url:"xt"`
+	IncludeTarget             string `url:"it"`
+	Continuation              string `url:"c"`
+	Output                    string `url:"output"`
+	IncludeAllDirectStreamIDs string `url:"includeAllDirectStreamIds"`
+	StreamID                  string `url:"streamId" url:"s"`
+}
+
+// SetStreamPrefsParams ---
+type SetStreamPrefsParams struct {
+	StreamID string `url:"s"`
+	Key      string `url:"k"`
+	Value    string `url:"v"`
+}
+
+// RenameTagParams ---
+type RenameTagParams struct {
+	Source string `url:"s"`
+	Dest   string `url:"dest"`
+}
+
+// DeleteTagParams ---
+type DeleteTagParams struct {
+	StreamID string `url:"s"`
+}
+
+// EditTagParams ---
+type EditTagParams struct {
+	Add    string `url:"a"`
+	Remove string `url:"r"`
+	ItemID string `url:"i"`
+}
+
+// MarkAllAsReadParams ---
+type MarkAllAsReadParams struct {
+	Timestamp string `url:"ts"`
+	StreamID  string `url:"s"`
+}

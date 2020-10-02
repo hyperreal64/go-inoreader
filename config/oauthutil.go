@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"path"
 	"time"
 
@@ -32,8 +33,8 @@ type AuthTemplate struct {
 
 var (
 	oauthConf = oauth2.Config{
-		ClientID:     "",
-		ClientSecret: "",
+		ClientID:     os.Getenv("INOREADER_CLIENT_ID"),
+		ClientSecret: os.Getenv("INOREADER_CLIENT_SECRET"),
 		Scopes:       []string{"read", "write"},
 		RedirectURL:  "http://localhost:53682/oauth2/redirect",
 		Endpoint: oauth2.Endpoint{
@@ -111,16 +112,11 @@ func exchangeToken(code string) (*oauth2.Token, error) {
 	return token, nil
 }
 
-// RefreshToken ---
-func (cf *CfgFile) RefreshToken(ctx context.Context) *http.Client {
-
-	content, err := cf.GetConfigContent()
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
+// GetOAuthResponse ---
+func (cf *Configuration) GetOAuthResponse(ctx context.Context) *http.Client {
 
 	token := new(oauth2.Token)
-	token = content.Oauth2Response
+	token = cf.Oauth2Response
 
 	return oauthConf.Client(ctx, token)
 }

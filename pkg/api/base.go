@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 
+	"github.com/google/go-querystring/query"
 	"github.com/pkg/errors"
 )
-
-var authToken = ""
 
 const (
 	baseURL           = "https://www.inoreader.com/reader/api/0"
@@ -26,88 +24,50 @@ const (
 	streamPrefsSetURL = baseURL + "/preference/stream/set"
 )
 
-func httpRequest(apiURL string, method string, params map[string]string) ([]byte, error) {
+// Client --- extends existing *http.Client type
+type client struct {
+	*http.Client
+}
 
-	v := url.Values{}
-	if len(params) != 0 {
-		for key, value := range params {
-			v.Add(key, value)
-		}
+func (client *client) httpDo(method string, url string) ([]byte, error) {
+
+	var (
+		res *http.Response
+		err error
+	)
+
+	if method == "GET" {
+		res, err = client.Get(url)
 	}
 
-	url := fmt.Sprintf("%s?%s", apiURL, v.Encode())
-
-	client := &http.Client{}
-	req, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "HTTP request failed")
+	if method == "POST" {
+		res, err = client.Post(url, "application/json", nil)
 	}
 
-	req.Header.Add("Authorization", authToken)
-
-	res, err := client.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to complete HTTP request")
+		return nil, errors.Wrap(err, "Could not complete HTTP request")
 	}
 
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to read HTTP response body")
+		return nil, errors.Wrap(err, "Could not read HTTP response body")
 	}
 
 	return body, nil
 }
 
-// GetJSONObject ---
-func GetJSONObject(url string, req string, obj interface{}) error {
-
-	body, err := httpRequest(url, req, nil)
-	if err != nil {
-		return err
-	}
-
-	if err = json.Unmarshal(body, &obj); err != nil {
-		return errors.Wrapf(err, "Failed to unmarshal JSON object %v", obj)
-	}
-
-	return nil
-}
-
-// GetJSONObjectParams ---
-func GetJSONObjectParams(url string, req string, obj interface{}, params map[string]string) error {
-
-	FilterParams(params)
-	body, err := httpRequest(url, req, params)
-	if err != nil {
-		return err
-	}
-
-	if err = json.Unmarshal(body, &obj); err != nil {
-		return errors.Wrapf(err, "Failed to unmarshal JSON object %v", obj)
-	}
-
-	return nil
-}
-
-// FilterParams --- Filters unneeded url query params from the map provided.
-// Maps are reference types like pointers and slices, so a map object passed
-// to this function will be changed upon leaving this function's scope
-func FilterParams(paramsMap map[string]string) {
-
-	for key, value := range paramsMap {
-		if len(value) == 0 {
-			delete(paramsMap, key)
-		}
-	}
-}
-
 // SetInoreader --- Makes changes to the Inoreader user's account.
-func SetInoreader(url string, paramsMap map[string]string) error {
+func SetInoreader(client *client, url string, params interface{}) error {
 
-	FilterParams(paramsMap)
+	v, err := query.Values(params)
+	if err != nil {
+		return errors.Wrapf(err, "Could not construct URL with query parameters: %v", params)
+	}
 
-	_, err := httpRequest(url, "POST", paramsMap)
+	encodedURL := fmt.Sprintf("%s?%s", url, v.Encode())
+
+	_, err = client.httpDo("POST", encodedURL)
 	if err != nil {
 		return err
 	}
@@ -116,25 +76,38 @@ func SetInoreader(url string, paramsMap map[string]string) error {
 }
 
 // GetUserInfo ---
-func GetUserInfo(userInfo *UserInfo) error {
+func GetUserInfo(client *client, userInfo *UserInfo) error {
 
-	if err := GetJSONObject(userInfoURL, "GET", userInfo); err != nil {
-		return errors.Wrap(err, "Failed to get user info")
+	body, err := client.httpDo("GET", userInfoURL)
+	if err != nil {
+		return errors.Wrap(err, "Could not get user info")
+	}
+
+	if err := json.Unmarshal(body, userInfo); err != nil {
+		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", userInfo)
 	}
 
 	return nil
 }
 
 // QuickAddSubscription ---
-func QuickAddSubscription(feed string) error {
+func QuickAddSubscription(client *client, params *QuickAddParams) error {
 
-	params := map[string]string{
-		"quickadd": feed,
+	v, err := query.Values(params)
+	if err != nil {
+		return errors.Wrapf(err, "Could not construct URL with query parameters: %v", params)
+	}
+
+	encodedURL := fmt.Sprintf("%s?%s", addSubURL, v.Encode())
+
+	body, err := client.httpDo("POST", encodedURL)
+	if err != nil {
+		return errors.Wrap(err, "Could not add subscription")
 	}
 
 	quickAdd := &QuickAdd{}
-	if err := GetJSONObjectParams(addSubURL, "POST", quickAdd, params); err != nil {
-		return errors.Wrap(err, "Failed to add subscription")
+	if err := json.Unmarshal(body, quickAdd); err != nil {
+		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", quickAdd)
 	}
 
 	if quickAdd.NumResults != 1 {
@@ -145,164 +118,159 @@ func QuickAddSubscription(feed string) error {
 }
 
 // EditSubscription ---
-// when calling this function, the order of the url query params
-// should be enforced so as to avoid mis-indexing. Also, len(params)
-// should always == 5 to avoid index out of range error.
-func EditSubscription(params []string) error {
+func EditSubscription(client *client, params *EditSubParams) error {
 
-	paramsMap := map[string]string{
-		"ac": params[0],
-		"s":  params[1],
-		"t":  params[2],
-		"a":  params[3],
-		"r":  params[4],
-	}
-
-	if err := SetInoreader(editSubURL, paramsMap); err != nil {
-		return errors.Wrap(err, "Failed to edit subscription")
+	if err := SetInoreader(client, editSubURL, params); err != nil {
+		return errors.Wrap(err, "Could not edit subscription")
 	}
 
 	return nil
 }
 
 // GetUnreadCounters ---
-func GetUnreadCounters(unreadCounters *UnreadCounters) error {
+func GetUnreadCounters(client *client, unreadCounters *UnreadCounters) error {
 
-	if err := GetJSONObject(unreadCountersURL, "GET", unreadCounters); err != nil {
-		return errors.Wrap(err, "Failed to get unread counters")
+	body, err := client.httpDo("GET", unreadCountersURL)
+	if err != nil {
+		return errors.Wrap(err, "Could not get unread counters")
+	}
+
+	if err = json.Unmarshal(body, &unreadCounters); err != nil {
+		return errors.Wrapf(err, "Could not unmarshal JSON object %v", unreadCounters)
 	}
 
 	return nil
 }
 
 // GetSubscriptionList ---
-func GetSubscriptionList(subList *SubscriptionList) error {
+func GetSubscriptionList(client *client, subList *SubscriptionList) error {
 
-	if err := GetJSONObject(subListURL, "GET", subList); err != nil {
-		return errors.Wrap(err, "Failed to get subscription list")
+	body, err := client.httpDo("GET", subListURL)
+	if err != nil {
+		return errors.Wrap(err, "Could not get subscription list")
+	}
+
+	if err := json.Unmarshal(body, subList); err != nil {
+		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", subList)
 	}
 
 	return nil
 }
 
 // GetTagList ---
-func GetTagList(tagList *TagFolderList) error {
+func GetTagList(client *client, tagList *TagFolderList) error {
 
-	if err := GetJSONObject(tagListURL, "GET", tagList); err != nil {
-		return errors.Wrap(err, "Failed to get tag/folder list")
+	body, err := client.httpDo("GET", tagListURL)
+	if err != nil {
+		return errors.Wrap(err, "Could not get tag/folder list")
+	}
+
+	if err := json.Unmarshal(body, tagList); err != nil {
+		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", tagList)
 	}
 
 	return nil
 }
 
 // GetStreamContents ---
-// Order of params should be enforced by calling function
-func GetStreamContents(streamContents *StreamContents, params []string) error {
+func GetStreamContents(client *client, streamContents *StreamContents, params *ContentsParams) error {
 
-	paramsMap := map[string]string{
-		"n":                         params[0],
-		"r":                         params[1],
-		"ot":                        params[2],
-		"xt":                        params[3],
-		"it":                        params[4],
-		"c":                         params[5],
-		"output":                    params[6],
-		"includeAllDirectStreamIDs": params[7],
-		"streamID":                  params[8],
+	v, err := query.Values(params)
+	if err != nil {
+		return errors.Wrapf(err, "Could not construct URL with query parameters: %v", params)
 	}
 
-	if err := GetJSONObjectParams(streamContentURL, "GET", streamContents, paramsMap); err != nil {
-		return errors.Wrap(err, "Failed to get stream contents")
+	encodedURL := fmt.Sprintf("%s?%s", streamContentURL, v.Encode())
+
+	body, err := client.httpDo("GET", encodedURL)
+	if err != nil {
+		return errors.Wrap(err, "Could not get stream contents")
+	}
+
+	if err := json.Unmarshal(body, streamContents); err != nil {
+		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", streamContents)
 	}
 
 	return nil
 }
 
 // GetItemIDs ---
-// Order of params should be enforced by calling function
-func GetItemIDs(itemIDs *ItemIDs, params []string) error {
+func GetItemIDs(client *client, itemIDs *ItemIDs, params *ContentsParams) error {
 
-	paramsMap := map[string]string{
-		"n":                         params[0],
-		"r":                         params[1],
-		"ot":                        params[2],
-		"xt":                        params[3],
-		"it":                        params[4],
-		"c":                         params[5],
-		"output":                    params[6],
-		"IncludeAllDirectStreamIDs": params[7],
-		"StreamID":                  params[8],
+	v, err := query.Values(params)
+	if err != nil {
+		return errors.Wrapf(err, "Could not construct URL with query parameters: %v", params)
 	}
 
-	if err := SetInoreader(itemIDsURL, paramsMap); err != nil {
-		return errors.Wrap(err, "Failed to get item ids")
+	encodedURL := fmt.Sprintf("%s?%s", itemIDsURL, v.Encode())
+
+	body, err := client.httpDo("GET", encodedURL)
+	if err != nil {
+		return errors.Wrap(err, "Could not get item IDs")
+	}
+
+	if err := json.Unmarshal(body, itemIDs); err != nil {
+		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", itemIDs)
 	}
 
 	return nil
 }
 
 // GetStreamPrefsList ---
-func GetStreamPrefsList(streamPrefsList *StreamPreferenceList) error {
+func GetStreamPrefsList(client *client, streamPrefsList *StreamPreferenceList) error {
 
-	if err := GetJSONObject(streamPrefsURL, "GET", streamPrefsList); err != nil {
-		return errors.Wrap(err, "Failed to get stream preferences list")
+	body, err := client.httpDo("GET", streamPrefsURL)
+	if err != nil {
+		return errors.Wrap(err, "Could not get stream preferences list")
+	}
+
+	if err := json.Unmarshal(body, streamPrefsList); err != nil {
+		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", streamPrefsList)
 	}
 
 	return nil
 }
 
 // SetStreamPrefs ---
-// Order of params should be enforced by calling function
-func SetStreamPrefs(streamPrefParams []string) error {
+func SetStreamPrefs(client *client, params *SetStreamPrefsParams) error {
 
-	paramsMap := map[string]string{
-		"s": streamPrefParams[0],
-		"k": streamPrefParams[1],
-		"v": streamPrefParams[2],
-	}
-
-	if err := SetInoreader(streamPrefsSetURL, paramsMap); err != nil {
-		return errors.Wrap(err, "Failed to set stream preferences")
+	if err := SetInoreader(client, streamPrefsSetURL, params); err != nil {
+		return errors.Wrap(err, "Could not set stream preferences")
 	}
 
 	return nil
 }
 
 // RenameTag ---
-// Order of params should be enforced by calling function
-func RenameTag(srcName string, destName string) error {
-
-	paramsMap := map[string]string{
-		"s":    srcName,
-		"dest": destName,
-	}
+func RenameTag(client *client, params *RenameTagParams) error {
 
 	url := baseURL + "/rename-tag"
-	if err := SetInoreader(url, paramsMap); err != nil {
-		return errors.Wrapf(err, "Failed to rename %s tag to %s", srcName, destName)
+	if err := SetInoreader(client, url, params); err != nil {
+		return errors.Wrapf(err, "Could not rename %s tag to %s", params.Source, params.Dest)
 	}
 
 	return nil
 }
 
 // DeleteTag ---
-func DeleteTag(tagName string) error {
+func DeleteTag(client *client, tagName string) error {
 
 	paramsMap := map[string]string{
 		"s": tagName,
 	}
 
 	url := baseURL + "/disable-tag"
-	if err := SetInoreader(url, paramsMap); err != nil {
-		return errors.Wrapf(err, "Failed to delete tag %s", tagName)
+	if err := SetInoreader(client, url, paramsMap); err != nil {
+		return errors.Wrapf(err, "Could not delete tag %s", tagName)
 	}
 
 	return nil
 }
 
 // EditTag ---
+// SUBOPTIMAL
 // Order of params should be enforced by calling function
-func EditTag(editTagParams []string) error {
+func EditTag(client *client, editTagParams []string) error {
 
 	paramsMap := map[string]string{
 		"a": editTagParams[0],
@@ -311,16 +279,17 @@ func EditTag(editTagParams []string) error {
 	}
 
 	url := baseURL + "/edit-tag"
-	if err := SetInoreader(url, paramsMap); err != nil {
-		return errors.Wrap(err, "Failed to edit tag")
+	if err := SetInoreader(client, url, paramsMap); err != nil {
+		return errors.Wrap(err, "Could not edit tag")
 	}
 
 	return nil
 }
 
 // MarkAllAsRead ---
+// SUBOPTIMAL
 // Order of params should be enforced by calling function
-func MarkAllAsRead(ts string, streamid string) error {
+func MarkAllAsRead(client *client, ts string, streamid string) error {
 
 	paramsMap := map[string]string{
 		"ts": ts,
@@ -328,8 +297,8 @@ func MarkAllAsRead(ts string, streamid string) error {
 	}
 
 	url := baseURL + "/mark-all-as-read"
-	if err := SetInoreader(url, paramsMap); err != nil {
-		return errors.Wrapf(err, "Failed to mark all items in %s as read", streamid)
+	if err := SetInoreader(client, url, paramsMap); err != nil {
+		return errors.Wrapf(err, "Could not mark all items in %s as read", streamid)
 	}
 
 	return nil

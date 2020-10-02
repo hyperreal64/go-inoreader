@@ -13,7 +13,7 @@
 - [x] Rename pkg/inoreader to pkg/api
 - [ ] Add configuration settings
     - [x] OAuth2
-      - [ ] Make HTML template conditional on success/failure of OAuth2 flow
+    - [ ] Make HTML template conditional on success/failure of OAuth2 flow
     - [x] Save client data to $HOME/.local/share/go-inoreader.json
     - [ ] Integrate configuration with pkg/client and pkg/api
 - [x] Refactor httpRequest

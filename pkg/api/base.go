@@ -255,12 +255,12 @@ func RenameTag(client *client, params *RenameTagParams) error {
 // DeleteTag ---
 func DeleteTag(client *client, tagName string) error {
 
-	paramsMap := map[string]string{
-		"s": tagName,
+	params := &DeleteTagParams{
+		StreamID: tagName,
 	}
 
 	url := baseURL + "/disable-tag"
-	if err := SetInoreader(client, url, paramsMap); err != nil {
+	if err := SetInoreader(client, url, params); err != nil {
 		return errors.Wrapf(err, "Could not delete tag %s", tagName)
 	}
 
@@ -268,18 +268,10 @@ func DeleteTag(client *client, tagName string) error {
 }
 
 // EditTag ---
-// SUBOPTIMAL
-// Order of params should be enforced by calling function
-func EditTag(client *client, editTagParams []string) error {
-
-	paramsMap := map[string]string{
-		"a": editTagParams[0],
-		"r": editTagParams[1],
-		"i": editTagParams[2],
-	}
+func EditTag(client *client, params *EditTagParams) error {
 
 	url := baseURL + "/edit-tag"
-	if err := SetInoreader(client, url, paramsMap); err != nil {
+	if err := SetInoreader(client, url, params); err != nil {
 		return errors.Wrap(err, "Could not edit tag")
 	}
 
@@ -287,18 +279,11 @@ func EditTag(client *client, editTagParams []string) error {
 }
 
 // MarkAllAsRead ---
-// SUBOPTIMAL
-// Order of params should be enforced by calling function
-func MarkAllAsRead(client *client, ts string, streamid string) error {
-
-	paramsMap := map[string]string{
-		"ts": ts,
-		"s":  streamid,
-	}
+func MarkAllAsRead(client *client, params *MarkAllAsReadParams) error {
 
 	url := baseURL + "/mark-all-as-read"
-	if err := SetInoreader(client, url, paramsMap); err != nil {
-		return errors.Wrapf(err, "Could not mark all items in %s as read", streamid)
+	if err := SetInoreader(client, url, params); err != nil {
+		return errors.Wrapf(err, "Could not mark all items in %s as read", params.StreamID)
 	}
 
 	return nil

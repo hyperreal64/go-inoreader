@@ -1,18 +1,20 @@
-package client
+package config
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/http"
 
-	"github.com/hyperreal64/go-inoreader/config"
-	"github.com/hyperreal64/go-inoreader/pkg/api"
+	api "github.com/hyperreal64/go-inoreader/api"
+
 	"github.com/pkg/errors"
 )
 
 var (
-	cf = &config.Configuration{}
+	cf          = &Configuration{}
 	ctx, cancel = context.WithCancel(context.Background())
-	client = cf.GetOAuthResponse(ctx)
+	client      = cf.GetOAuthResponse(ctx)
 )
 
 func getConfig() error {
@@ -28,8 +30,7 @@ func getConfig() error {
 func ListUnreadCounters(client *http.Client) {
 
 	unreadCounters := &api.UnreadCounters{}
-	if err := api.GetUnreadCounters(client, unreadCounters)
-	if err != nil {
+	if err := api.GetUnreadCounters(client, unreadCounters); err != nil {
 		log.Fatalln(err)
 	}
 

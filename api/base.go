@@ -24,12 +24,7 @@ const (
 	streamPrefsSetURL = baseURL + "/preference/stream/set"
 )
 
-// Client --- extends existing *http.Client type
-type client struct {
-	*http.Client
-}
-
-func (client *client) httpDo(method string, url string) ([]byte, error) {
+func httpDo(client *http.Client, method string, url string) ([]byte, error) {
 
 	var (
 		res *http.Response
@@ -58,7 +53,7 @@ func (client *client) httpDo(method string, url string) ([]byte, error) {
 }
 
 // SetInoreader --- Makes changes to the Inoreader user's account.
-func SetInoreader(client *client, url string, params interface{}) error {
+func SetInoreader(client *http.Client, url string, params interface{}) error {
 
 	v, err := query.Values(params)
 	if err != nil {
@@ -67,7 +62,7 @@ func SetInoreader(client *client, url string, params interface{}) error {
 
 	encodedURL := fmt.Sprintf("%s?%s", url, v.Encode())
 
-	_, err = client.httpDo("POST", encodedURL)
+	_, err = httpDo(client, "POST", encodedURL)
 	if err != nil {
 		return err
 	}
@@ -76,9 +71,9 @@ func SetInoreader(client *client, url string, params interface{}) error {
 }
 
 // GetUserInfo ---
-func GetUserInfo(client *client, userInfo *UserInfo) error {
+func GetUserInfo(client *http.Client, userInfo *UserInfo) error {
 
-	body, err := client.httpDo("GET", userInfoURL)
+	body, err := httpDo(client, "GET", userInfoURL)
 	if err != nil {
 		return errors.Wrap(err, "Could not get user info")
 	}
@@ -91,7 +86,7 @@ func GetUserInfo(client *client, userInfo *UserInfo) error {
 }
 
 // QuickAddSubscription ---
-func QuickAddSubscription(client *client, params *QuickAddParams) error {
+func QuickAddSubscription(client *http.Client, params *QuickAddParams) error {
 
 	v, err := query.Values(params)
 	if err != nil {
@@ -100,7 +95,7 @@ func QuickAddSubscription(client *client, params *QuickAddParams) error {
 
 	encodedURL := fmt.Sprintf("%s?%s", addSubURL, v.Encode())
 
-	body, err := client.httpDo("POST", encodedURL)
+	body, err := httpDo(client, "POST", encodedURL)
 	if err != nil {
 		return errors.Wrap(err, "Could not add subscription")
 	}
@@ -118,7 +113,7 @@ func QuickAddSubscription(client *client, params *QuickAddParams) error {
 }
 
 // EditSubscription ---
-func EditSubscription(client *client, params *EditSubParams) error {
+func EditSubscription(client *http.Client, params *EditSubParams) error {
 
 	if err := SetInoreader(client, editSubURL, params); err != nil {
 		return errors.Wrap(err, "Could not edit subscription")
@@ -128,9 +123,9 @@ func EditSubscription(client *client, params *EditSubParams) error {
 }
 
 // GetUnreadCounters ---
-func GetUnreadCounters(client *client, unreadCounters *UnreadCounters) error {
+func GetUnreadCounters(client *http.Client, unreadCounters *UnreadCounters) error {
 
-	body, err := client.httpDo("GET", unreadCountersURL)
+	body, err := httpDo(client, "GET", unreadCountersURL)
 	if err != nil {
 		return errors.Wrap(err, "Could not get unread counters")
 	}
@@ -143,9 +138,9 @@ func GetUnreadCounters(client *client, unreadCounters *UnreadCounters) error {
 }
 
 // GetSubscriptionList ---
-func GetSubscriptionList(client *client, subList *SubscriptionList) error {
+func GetSubscriptionList(client *http.Client, subList *SubscriptionList) error {
 
-	body, err := client.httpDo("GET", subListURL)
+	body, err := httpDo(client, "GET", subListURL)
 	if err != nil {
 		return errors.Wrap(err, "Could not get subscription list")
 	}
@@ -158,9 +153,9 @@ func GetSubscriptionList(client *client, subList *SubscriptionList) error {
 }
 
 // GetTagList ---
-func GetTagList(client *client, tagList *TagFolderList) error {
+func GetTagList(client *http.Client, tagList *TagFolderList) error {
 
-	body, err := client.httpDo("GET", tagListURL)
+	body, err := httpDo(client, "GET", tagListURL)
 	if err != nil {
 		return errors.Wrap(err, "Could not get tag/folder list")
 	}
@@ -173,7 +168,7 @@ func GetTagList(client *client, tagList *TagFolderList) error {
 }
 
 // GetStreamContents ---
-func GetStreamContents(client *client, streamContents *StreamContents, params *ContentsParams) error {
+func GetStreamContents(client *http.Client, streamContents *StreamContents, params *ContentsParams) error {
 
 	v, err := query.Values(params)
 	if err != nil {
@@ -182,7 +177,7 @@ func GetStreamContents(client *client, streamContents *StreamContents, params *C
 
 	encodedURL := fmt.Sprintf("%s?%s", streamContentURL, v.Encode())
 
-	body, err := client.httpDo("GET", encodedURL)
+	body, err := httpDo(client, "GET", encodedURL)
 	if err != nil {
 		return errors.Wrap(err, "Could not get stream contents")
 	}
@@ -195,7 +190,7 @@ func GetStreamContents(client *client, streamContents *StreamContents, params *C
 }
 
 // GetItemIDs ---
-func GetItemIDs(client *client, itemIDs *ItemIDs, params *ContentsParams) error {
+func GetItemIDs(client *http.Client, itemIDs *ItemIDs, params *ContentsParams) error {
 
 	v, err := query.Values(params)
 	if err != nil {
@@ -204,7 +199,7 @@ func GetItemIDs(client *client, itemIDs *ItemIDs, params *ContentsParams) error 
 
 	encodedURL := fmt.Sprintf("%s?%s", itemIDsURL, v.Encode())
 
-	body, err := client.httpDo("GET", encodedURL)
+	body, err := httpDo(client, "GET", encodedURL)
 	if err != nil {
 		return errors.Wrap(err, "Could not get item IDs")
 	}
@@ -217,9 +212,9 @@ func GetItemIDs(client *client, itemIDs *ItemIDs, params *ContentsParams) error 
 }
 
 // GetStreamPrefsList ---
-func GetStreamPrefsList(client *client, streamPrefsList *StreamPreferenceList) error {
+func GetStreamPrefsList(client *http.Client, streamPrefsList *StreamPreferenceList) error {
 
-	body, err := client.httpDo("GET", streamPrefsURL)
+	body, err := httpDo(client, "GET", streamPrefsURL)
 	if err != nil {
 		return errors.Wrap(err, "Could not get stream preferences list")
 	}
@@ -232,7 +227,7 @@ func GetStreamPrefsList(client *client, streamPrefsList *StreamPreferenceList) e
 }
 
 // SetStreamPrefs ---
-func SetStreamPrefs(client *client, params *SetStreamPrefsParams) error {
+func SetStreamPrefs(client *http.Client, params *SetStreamPrefsParams) error {
 
 	if err := SetInoreader(client, streamPrefsSetURL, params); err != nil {
 		return errors.Wrap(err, "Could not set stream preferences")
@@ -242,7 +237,7 @@ func SetStreamPrefs(client *client, params *SetStreamPrefsParams) error {
 }
 
 // RenameTag ---
-func RenameTag(client *client, params *RenameTagParams) error {
+func RenameTag(client *http.Client, params *RenameTagParams) error {
 
 	url := baseURL + "/rename-tag"
 	if err := SetInoreader(client, url, params); err != nil {
@@ -253,7 +248,7 @@ func RenameTag(client *client, params *RenameTagParams) error {
 }
 
 // DeleteTag ---
-func DeleteTag(client *client, tagName string) error {
+func DeleteTag(client *http.Client, tagName string) error {
 
 	params := &DeleteTagParams{
 		StreamID: tagName,
@@ -268,7 +263,7 @@ func DeleteTag(client *client, tagName string) error {
 }
 
 // EditTag ---
-func EditTag(client *client, params *EditTagParams) error {
+func EditTag(client *http.Client, params *EditTagParams) error {
 
 	url := baseURL + "/edit-tag"
 	if err := SetInoreader(client, url, params); err != nil {
@@ -279,7 +274,7 @@ func EditTag(client *client, params *EditTagParams) error {
 }
 
 // MarkAllAsRead ---
-func MarkAllAsRead(client *client, params *MarkAllAsReadParams) error {
+func MarkAllAsRead(client *http.Client, params *MarkAllAsReadParams) error {
 
 	url := baseURL + "/mark-all-as-read"
 	if err := SetInoreader(client, url, params); err != nil {

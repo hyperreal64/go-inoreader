@@ -1,21 +1,17 @@
-# TODO go-inoreader
+# TODO 
 
-- [x] Add the remaining base API methods
-- [x] Abstract some functions to avoid repetition
-    - [x] Functions that send POST reqs
-- [ ] Add client.go file for higher-order functions that process base API methods and return useful results
-    - [ ] Allow various output formats for streams/items: JSON, CSV
-    - [ ] Add feature to format stream/item metadata and output into markdown file
-    - [ ] Add feature to download OPML
+As of 2021-02-01 21:33:09
+
+- [x] Add base API methods
 - [ ] `cmd/go-inoreader/main.go`
-    - [ ] Use [flag](https://golang.org/pkg/flag/) package to handle command line args
+    - [ ] Use [flag](https://golang.org/pkg/flag/) package to handle command-line args
 - [ ] Remove unneeded type definitions
-- [x] Rename pkg/inoreader to pkg/api
 - [ ] Add configuration settings
-    - [x] OAuth2
+    - [x] OAuth2 flow
     - [ ] Make HTML template conditional on success/failure of OAuth2 flow
-    - [x] Save client data to $HOME/.local/share/go-inoreader.json
-    - [ ] Integrate configuration with pkg/client and pkg/api
-- [x] Refactor httpRequest
+    - [x] Save configuration info to `$XDG_DATA_HOME/go-inoreader.json` on Unix/Linux and `%APPDATA/go-inoreader.json` on Windows
 - [x] Use [go-querystring](https://github.com/google/go-querystring) for more type-safe query parameter handling
-  - [x] Add type definitions for base API methods that use query parameters
+    - [x] Add type definitions for base API methods that use query parameters
+- [ ] Support various output formats for streams/items: JSON, CSV
+- [ ] Support formatting stream/item metadata and output for markdown
+- [ ] Support downloading OPML for subscriptions list

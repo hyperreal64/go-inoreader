@@ -1,4 +1,4 @@
-package config
+package main
 
 import (
 	"context"
@@ -161,6 +161,7 @@ func ServeTemplate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := tmpl.Execute(w, authTempl); err != nil {
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

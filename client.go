@@ -1,12 +1,10 @@
-package config
+package main
 
 import (
 	"context"
 	"fmt"
 	"log"
 	"net/http"
-
-	api "github.com/hyperreal64/go-inoreader/api"
 
 	"github.com/pkg/errors"
 )
@@ -29,8 +27,8 @@ func getConfig() error {
 // ListUnreadCounters ---
 func ListUnreadCounters(client *http.Client) {
 
-	unreadCounters := &api.UnreadCounters{}
-	if err := api.GetUnreadCounters(client, unreadCounters); err != nil {
+	unreadCounters := &UnreadCounters{}
+	if err := GetUnreadCounters(client, unreadCounters); err != nil {
 		log.Fatalln(err)
 	}
 

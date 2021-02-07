@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"net/http"
+
+	"github.com/tkanos/gonfig"
 )
 
 // Init --- Initiate Oauth flow
@@ -30,5 +32,14 @@ func Init() {
 }
 
 func main() {
-	Init()
+	// Init()
+	cf := &Configuration{}
+	if err := gonfig.GetConf(GetCfgFilePath(), cf); err != nil {
+		log.Fatalln("Error")
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	client := cf.GetOAuthResponse(ctx)
+
+	ListUnreadCounters(client)
 }

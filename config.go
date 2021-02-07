@@ -8,7 +8,6 @@ import (
 	"runtime"
 
 	"github.com/pkg/errors"
-	"github.com/tkanos/gonfig"
 	"golang.org/x/oauth2"
 )
 
@@ -69,16 +68,6 @@ func (cf *CfgFile) writeCfgFile() error {
 	// on all systems, thus '0666' can be used for Windows and Unix alike.
 	if err = ioutil.WriteFile(cf.FilePath, jsonData, 0666); err != nil {
 		return errors.Wrapf(err, "Could not write to config file: %s\n", cf.FilePath)
-	}
-
-	return nil
-}
-
-// GetConfigContent ---
-func (cf *Configuration) GetConfigContent() error {
-
-	if err := gonfig.GetConf(GetCfgFilePath(), cf); err != nil {
-		return errors.Wrap(err, "Could not retrieve configuration contents")
 	}
 
 	return nil

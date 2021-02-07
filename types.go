@@ -23,7 +23,7 @@ type QuickAdd struct {
 
 // UnreadCounters ---
 type UnreadCounters struct {
-	Max          string `json:"max"`
+	Max          int `json:"max"`
 	Unreadcounts []struct {
 		ID                      string      `json:"id"`
 		Count                   json.Number `json:"count"`

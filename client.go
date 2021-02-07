@@ -1,27 +1,29 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
-
-	"github.com/pkg/errors"
+	"strings"
 )
 
-var (
-	cf          = &Configuration{}
-	ctx, cancel = context.WithCancel(context.Background())
-	client      = cf.GetOAuthResponse(ctx)
-)
+// GetSubscriptionTitle ---
+func GetSubscriptionTitle(sid string, client *http.Client) string {
 
-func getConfig() error {
-
-	if err := cf.GetConfigContent(); err != nil {
-		return errors.Wrap(err, "Could not get configuration content")
+	subscriptionList := &SubscriptionList{}
+	if err := GetSubscriptionList(client, subscriptionList); err != nil {
+		log.Fatalln(err)
 	}
 
-	return nil
+	var title string
+
+	for _, v := range subscriptionList.Subscriptions {
+		if v.ID == sid {
+			title = v.Title
+		}
+	}
+
+	return title
 }
 
 // ListUnreadCounters ---
@@ -32,7 +34,18 @@ func ListUnreadCounters(client *http.Client) {
 		log.Fatalln(err)
 	}
 
+	fmt.Println("Unread items")
+	fmt.Println(strings.Repeat("-", 30))
 	for _, v := range unreadCounters.Unreadcounts {
-		fmt.Println(v)
+		count, err := v.Count.Int64()
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		statePrefix := "user/1005869311/state/com.google/"
+		if count > 0 && v.ID != statePrefix+"reading-list" && v.ID != statePrefix+"starred" {
+			title := GetSubscriptionTitle(v.ID, client)
+			fmt.Printf("%-5d %s\n", count, title)
+		}
 	}
 }

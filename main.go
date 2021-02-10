@@ -41,5 +41,17 @@ func main() {
 	defer cancel()
 	client := cf.GetOAuthResponse(ctx)
 
-	ListUnreadCounters(client)
+	// subList, _ := getSubscriptionList(client)
+	// unreadCounters, _ := getUnreadCounters(client)
+	// printUnreadCounts(subList, unreadCounters)
+	// tagList, _ := getTagList(client)
+	// printTagFolderList(tagList)
+
+	params := &ContentsParams{
+		NumOfItems: "5",
+		StreamID:   "feed/http://www.osnews.com/files/recent.xml",
+	}
+
+	streamContents, _ := getStreamContents(client, params)
+	printStreamContents(streamContents)
 }

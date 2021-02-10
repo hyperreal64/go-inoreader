@@ -17,8 +17,8 @@ const (
 	editSubURL        = baseURL + "/subscription/edit"
 	unreadCountersURL = baseURL + "/unread-count"
 	subListURL        = baseURL + "/subscription/list"
-	tagListURL        = baseURL + "/tag/list"
-	streamContentURL  = baseURL + "/stream/contents/"
+	tagListURL        = baseURL + "/tag/list?types=1&counts=1"
+	streamContentsURL = baseURL + "/stream/contents"
 	itemIDsURL        = baseURL + "/stream/items/ids"
 	streamPrefsURL    = baseURL + "/preference/stream/list"
 	streamPrefsSetURL = baseURL + "/preference/stream/set"
@@ -122,71 +122,71 @@ func EditSubscription(client *http.Client, params *EditSubParams) error {
 	return nil
 }
 
-// GetUnreadCounters ---
-func GetUnreadCounters(client *http.Client, unreadCounters *UnreadCounters) error {
-
-	body, err := httpDo(client, "GET", unreadCountersURL)
-	if err != nil {
-		return errors.Wrap(err, "Could not get unread counters")
-	}
-
-	if err = json.Unmarshal(body, &unreadCounters); err != nil {
-		return errors.Wrapf(err, "Could not unmarshal JSON object %v", unreadCounters)
-	}
-
-	return nil
-}
-
-// GetSubscriptionList ---
-func GetSubscriptionList(client *http.Client, subList *SubscriptionList) error {
+func getSubscriptionList(client *http.Client) (*SubscriptionList, error) {
 
 	body, err := httpDo(client, "GET", subListURL)
 	if err != nil {
-		return errors.Wrap(err, "Could not get subscription list")
+		return nil, errors.Wrap(err, "Could not get subscription list")
 	}
 
-	if err := json.Unmarshal(body, subList); err != nil {
-		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", subList)
+	subList := &SubscriptionList{}
+	if err := json.Unmarshal(body, &subList); err != nil {
+		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", subList)
 	}
 
-	return nil
+	return subList, nil
 }
 
-// GetTagList ---
-func GetTagList(client *http.Client, tagList *TagFolderList) error {
+func getUnreadCounters(client *http.Client) (*UnreadCounters, error) {
+
+	body, err := httpDo(client, "GET", unreadCountersURL)
+	if err != nil {
+		return nil, errors.Wrap(err, "Could not get unread counters")
+	}
+
+	unreadCounters := &UnreadCounters{}
+	if err = json.Unmarshal(body, &unreadCounters); err != nil {
+		return nil, errors.Wrapf(err, "Could not unmarshal JSON object %v", unreadCounters)
+	}
+
+	return unreadCounters, nil
+}
+
+func getTagList(client *http.Client) (*TagFolderList, error) {
 
 	body, err := httpDo(client, "GET", tagListURL)
 	if err != nil {
-		return errors.Wrap(err, "Could not get tag/folder list")
+		return nil, errors.Wrap(err, "Could not get tag/folder list")
 	}
 
+	tagList := &TagFolderList{}
 	if err := json.Unmarshal(body, tagList); err != nil {
-		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", tagList)
+		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", tagList)
 	}
 
-	return nil
+	return tagList, nil
 }
 
-// GetStreamContents ---
-func GetStreamContents(client *http.Client, streamContents *StreamContents, params *ContentsParams) error {
+func getStreamContents(client *http.Client, params *ContentsParams) (*StreamContents, error) {
 
 	v, err := query.Values(params)
 	if err != nil {
-		return errors.Wrapf(err, "Could not construct URL with query parameters: %v", params)
+		return nil, errors.Wrapf(err, "Could not construct URL with query parameters: %v", params)
 	}
 
-	encodedURL := fmt.Sprintf("%s?%s", streamContentURL, v.Encode())
+	encodedURL := fmt.Sprintf("%s?%s", streamContentsURL, v.Encode())
 
 	body, err := httpDo(client, "GET", encodedURL)
 	if err != nil {
-		return errors.Wrap(err, "Could not get stream contents")
+		return nil, errors.Wrap(err, "Could not get stream contents")
 	}
 
+	streamContents := &StreamContents{}
 	if err := json.Unmarshal(body, streamContents); err != nil {
-		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", streamContents)
+		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", streamContents)
 	}
 
-	return nil
+	return streamContents, nil
 }
 
 // GetItemIDs ---

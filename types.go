@@ -1,6 +1,8 @@
 package main
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 // UserInfo ---
 type UserInfo struct {
@@ -49,22 +51,24 @@ type SubscriptionList struct {
 // TagFolderList ---
 type TagFolderList struct {
 	Tags []struct {
-		ID     string `json:"id"`
-		Sortid string `json:"sortid"`
+		ID          string `json:"id"`
+		Sortid      string `json:"sortid"`
+		UnreadCount int64  `json:"unread_count"`
+		Type        string `json:"type"`
 	} `json:"tags"`
 }
 
 // StreamContents ---
 type StreamContents struct {
-	Direction    string        `json:"direction"`
-	ID           string        `json:"id"`
-	Title        string        `json:"title"`
-	Description  string        `json:"description"`
-	Updated      int           `json:"updated"`
-	UpdatedUsec  string        `json:"updatedUsec"`
-	Self         interface{}   `json:"self"`
-	Items        []interface{} `json:"items"`
-	Continuation string        `json:"continuation"`
+	Direction    string      `json:"direction"`
+	ID           string      `json:"id"`
+	Title        string      `json:"title"`
+	Description  string      `json:"description"`
+	Updated      int         `json:"updated"`
+	UpdatedUsec  string      `json:"updatedUsec"`
+	Self         interface{} `json:"self"`
+	Items        []Item      `json:"items"`
+	Continuation string      `json:"continuation"`
 }
 
 // Self --- of StreamContents
@@ -72,14 +76,14 @@ type Self struct {
 	Href string `json:"href"`
 }
 
-// Items --- of StreamContents
-type Items struct {
+// Item --- of StreamContents
+type Item struct {
 	CrawlTimeMsec string        `json:"crawlTimeMsec"`
 	TimestampUsec string        `json:"timestampUsec"`
 	ID            string        `json:"id"`
 	Categories    []string      `json:"categories"`
 	Title         string        `json:"title"`
-	Published     int           `json:"published"`
+	Published     int64         `json:"published"`
 	Updated       int           `json:"updated"`
 	Canonical     []interface{} `json:"canonical"`
 	Alternate     []interface{} `json:"alternate"`
@@ -89,7 +93,7 @@ type Items struct {
 	Comments      []interface{} `json:"comments"`
 	CommentsNum   int           `json:"commentsNum"`
 	Annotations   []interface{} `json:"annotations"`
-	Origin        interface{}   `json:"origin"`
+	Origin        *Origin       `json:"origin"`
 }
 
 // Canonical --- of Items of StreamContents
@@ -170,15 +174,14 @@ type FolderTagListParams struct {
 
 // ContentsParams --- for StreamContents and ItemIDs parameters
 type ContentsParams struct {
-	NumOfItems                string `url:"n"`
-	Order                     string `url:"r"`
-	StartTime                 string `url:"ot"`
-	ExcludeTarget             string `url:"xt"`
-	IncludeTarget             string `url:"it"`
-	Continuation              string `url:"c"`
-	Output                    string `url:"output"`
-	IncludeAllDirectStreamIDs string `url:"includeAllDirectStreamIds"`
-	StreamID                  string `url:"streamId" url:"s"`
+	NumOfItems    string `url:"n"`
+	Order         string `url:"r"`
+	StartTime     string `url:"ot"`
+	ExcludeTarget string `url:"xt"`
+	IncludeTarget string `url:"it"`
+	Continuation  string `url:"c"`
+	Output        string `url:"output"`
+	StreamID      string `url:"s"`
 }
 
 // SetStreamPrefsParams ---

@@ -47,6 +47,8 @@ func printUnreadCounts(subList *SubscriptionList, unreadCounts *UnreadCounters) 
 	table.Render()
 }
 
+// TODO: printTagFolderList with option for tag, folder, or both
+//   Command: inoreader tags -o <tag|folder|both>
 func printTagFolderList(tagList *TagFolderList) {
 
 	table := tablewriter.NewWriter(os.Stdout)
@@ -60,6 +62,12 @@ func printTagFolderList(tagList *TagFolderList) {
 	table.Render()
 }
 
+// TODO: printStreamContents with parameters:
+//   Command: inoreader stream 	(--help)
+//   Number of items 			(-n <int>)
+//   Order 						(-r <n|o>)
+//   Exclude target 			(-xt <streamID>)
+//   Include target 			(-it <streamID>)
 func printStreamContents(streamContents *StreamContents) {
 
 	table := tablewriter.NewWriter(os.Stdout)
@@ -72,3 +80,13 @@ func printStreamContents(streamContents *StreamContents) {
 	}
 	table.Render()
 }
+
+// TODO: index stream content output per item
+//   Command: inoreader stream summary <streamID> <itemID>
+//   Use item index to print the following:
+//   Feed name
+//   Item title
+//   Date Published
+//   Canonical href
+//   Author
+//   Summary content

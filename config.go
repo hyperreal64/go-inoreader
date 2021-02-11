@@ -11,21 +11,22 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// CfgFile ---
-type CfgFile struct {
+// FIXME: refactor and make this more efficient
+//  This most likely does not need to be a strucc
+//  Store / pick up client ID and client secret from config
+//  Unexport these, since they are all in one package
+type cfgFile struct {
 	FilePath string
 	Contents *Configuration
 }
 
 // Configuration ---
 type Configuration struct {
-	UserID         string `json:"userId"`
-	UserName       string `json:"userName"`
 	Oauth2Response *oauth2.Token
 }
 
-// GetCfgFilePath ---
-func GetCfgFilePath() string {
+// GetcfgFilePath ---
+func getCfgFilePath() string {
 
 	homeDir, _ := os.UserHomeDir()
 	var fileName string
@@ -41,20 +42,20 @@ func GetCfgFilePath() string {
 	return fileName
 }
 
-func newCfgFile(filePath string, data []byte) (*CfgFile, error) {
+func newCfgFile(filePath string, data []byte) (*cfgFile, error) {
 
 	conf := &Configuration{}
 	if err := json.Unmarshal(data, &conf); err != nil {
 		return nil, errors.Wrap(err, "Could not unmarshal JSON data")
 	}
 
-	return &CfgFile{
+	return &cfgFile{
 		FilePath: filePath,
 		Contents: conf,
 	}, nil
 }
 
-func (cf *CfgFile) writeCfgFile() error {
+func (cf *cfgFile) writeCfgFile() error {
 
 	jsonData, err := json.MarshalIndent(&cf.Contents, "", "    ")
 	if err != nil {

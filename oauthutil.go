@@ -36,7 +36,7 @@ var (
 		ClientID:     os.Getenv("INOREADER_CLIENT_ID"),
 		ClientSecret: os.Getenv("INOREADER_CLIENT_SECRET"),
 		Scopes:       []string{"read", "write"},
-		RedirectURL:  "http://localhost:53682/oauth2/redirect",
+		RedirectURL:  "http://localhost:8080/oauth/redirect",
 		Endpoint: oauth2.Endpoint{
 			AuthURL:  "https://www.inoreader.com/oauth2/auth?",
 			TokenURL: "https://www.inoreader.com/oauth2/token",
@@ -89,7 +89,7 @@ func HandleInoreaderCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := GetCfgFilePath()
+	filePath := getCfgFilePath()
 	cf, err := newCfgFile(filePath, data)
 	cf.Contents.Oauth2Response = token
 	cf.writeCfgFile()

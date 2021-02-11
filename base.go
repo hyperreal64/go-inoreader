@@ -2,11 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
 
-	"github.com/google/go-querystring/query"
+	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
 )
 
@@ -24,61 +21,15 @@ const (
 	streamPrefsSetURL = baseURL + "/preference/stream/set"
 )
 
-func httpDo(client *http.Client, method string, url string) ([]byte, error) {
-
-	var (
-		res *http.Response
-		err error
-	)
-
-	if method == "GET" {
-		res, err = client.Get(url)
-	}
-
-	if method == "POST" {
-		res, err = client.Post(url, "application/json", nil)
-	}
-
-	if err != nil {
-		return nil, errors.Wrap(err, "Could not complete HTTP request")
-	}
-
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "Could not read HTTP response body")
-	}
-
-	return body, nil
-}
-
-// SetInoreader --- Makes changes to the Inoreader user's account.
-func SetInoreader(client *http.Client, url string, params interface{}) error {
-
-	v, err := query.Values(params)
-	if err != nil {
-		return errors.Wrapf(err, "Could not construct URL with query parameters: %v", params)
-	}
-
-	encodedURL := fmt.Sprintf("%s?%s", url, v.Encode())
-
-	_, err = httpDo(client, "POST", encodedURL)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // GetUserInfo ---
-func GetUserInfo(client *http.Client, userInfo *UserInfo) error {
+func getUserInfo(rc *resty.Client, userInfo *UserInfo) error {
 
-	body, err := httpDo(client, "GET", userInfoURL)
+	resp, err := rc.R().Get(userInfoURL)
 	if err != nil {
 		return errors.Wrap(err, "Could not get user info")
 	}
 
-	if err := json.Unmarshal(body, userInfo); err != nil {
+	if err := json.Unmarshal(resp.Body(), userInfo); err != nil {
 		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", userInfo)
 	}
 
@@ -86,22 +37,17 @@ func GetUserInfo(client *http.Client, userInfo *UserInfo) error {
 }
 
 // QuickAddSubscription ---
-func QuickAddSubscription(client *http.Client, params *QuickAddParams) error {
+func quickAddSubscription(rc *resty.Client, params map[string]string) error {
 
-	v, err := query.Values(params)
+	resp, err := rc.R().
+		SetQueryParams(params).
+		Post(addSubURL)
 	if err != nil {
-		return errors.Wrapf(err, "Could not construct URL with query parameters: %v", params)
-	}
-
-	encodedURL := fmt.Sprintf("%s?%s", addSubURL, v.Encode())
-
-	body, err := httpDo(client, "POST", encodedURL)
-	if err != nil {
-		return errors.Wrap(err, "Could not add subscription")
+		return errors.Wrapf(err, "Could not not subscription")
 	}
 
 	quickAdd := &QuickAdd{}
-	if err := json.Unmarshal(body, quickAdd); err != nil {
+	if err := json.Unmarshal(resp.Body(), quickAdd); err != nil {
 		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", quickAdd)
 	}
 
@@ -113,76 +59,74 @@ func QuickAddSubscription(client *http.Client, params *QuickAddParams) error {
 }
 
 // EditSubscription ---
-func EditSubscription(client *http.Client, params *EditSubParams) error {
+func editSubscription(rc *resty.Client, params map[string]string) error {
 
-	if err := SetInoreader(client, editSubURL, params); err != nil {
+	_, err := rc.R().
+		SetQueryParams(params).
+		Post(editSubURL)
+	if err != nil {
 		return errors.Wrap(err, "Could not edit subscription")
 	}
 
 	return nil
 }
 
-func getSubscriptionList(client *http.Client) (*SubscriptionList, error) {
+func getSubscriptionList(rc *resty.Client) (*SubscriptionList, error) {
 
-	body, err := httpDo(client, "GET", subListURL)
+	resp, err := rc.R().Get(subListURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not get subscription list")
 	}
 
 	subList := &SubscriptionList{}
-	if err := json.Unmarshal(body, &subList); err != nil {
+	if err := json.Unmarshal(resp.Body(), &subList); err != nil {
 		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", subList)
 	}
 
 	return subList, nil
 }
 
-func getUnreadCounters(client *http.Client) (*UnreadCounters, error) {
+func getUnreadCounters(rc *resty.Client) (*UnreadCounters, error) {
 
-	body, err := httpDo(client, "GET", unreadCountersURL)
+	resp, err := rc.R().Get(unreadCountersURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not get unread counters")
 	}
 
 	unreadCounters := &UnreadCounters{}
-	if err = json.Unmarshal(body, &unreadCounters); err != nil {
+	if err = json.Unmarshal(resp.Body(), &unreadCounters); err != nil {
 		return nil, errors.Wrapf(err, "Could not unmarshal JSON object %v", unreadCounters)
 	}
 
 	return unreadCounters, nil
 }
 
-func getTagList(client *http.Client) (*TagFolderList, error) {
+func getTagList(rc *resty.Client) (*TagFolderList, error) {
 
-	body, err := httpDo(client, "GET", tagListURL)
+	resp, err := rc.R().Get(tagListURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not get tag/folder list")
 	}
 
 	tagList := &TagFolderList{}
-	if err := json.Unmarshal(body, tagList); err != nil {
+	if err := json.Unmarshal(resp.Body(), tagList); err != nil {
 		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", tagList)
 	}
 
 	return tagList, nil
 }
 
-func getStreamContents(client *http.Client, params *ContentsParams) (*StreamContents, error) {
+func getStreamContents(rc *resty.Client, params map[string]string) (*StreamContents, error) {
 
-	v, err := query.Values(params)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Could not construct URL with query parameters: %v", params)
-	}
-
-	encodedURL := fmt.Sprintf("%s?%s", streamContentsURL, v.Encode())
-
-	body, err := httpDo(client, "GET", encodedURL)
+	resp, err := rc.R().
+		SetQueryParams(params).
+		Get(streamContentsURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not get stream contents")
 	}
 
 	streamContents := &StreamContents{}
-	if err := json.Unmarshal(body, streamContents); err != nil {
+	if err := json.Unmarshal(resp.Body(), streamContents); err != nil {
 		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", streamContents)
 	}
 
@@ -190,21 +134,16 @@ func getStreamContents(client *http.Client, params *ContentsParams) (*StreamCont
 }
 
 // GetItemIDs ---
-func GetItemIDs(client *http.Client, itemIDs *ItemIDs, params *ContentsParams) error {
+func getItemIDs(rc *resty.Client, itemIDs *ItemIDs, params map[string]string) error {
 
-	v, err := query.Values(params)
-	if err != nil {
-		return errors.Wrapf(err, "Could not construct URL with query parameters: %v", params)
-	}
-
-	encodedURL := fmt.Sprintf("%s?%s", itemIDsURL, v.Encode())
-
-	body, err := httpDo(client, "GET", encodedURL)
+	resp, err := rc.R().
+		SetQueryParams(params).
+		Get(itemIDsURL)
 	if err != nil {
 		return errors.Wrap(err, "Could not get item IDs")
 	}
 
-	if err := json.Unmarshal(body, itemIDs); err != nil {
+	if err := json.Unmarshal(resp.Body(), itemIDs); err != nil {
 		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", itemIDs)
 	}
 
@@ -212,14 +151,14 @@ func GetItemIDs(client *http.Client, itemIDs *ItemIDs, params *ContentsParams) e
 }
 
 // GetStreamPrefsList ---
-func GetStreamPrefsList(client *http.Client, streamPrefsList *StreamPreferenceList) error {
+func getStreamPrefsList(rc *resty.Client, streamPrefsList *StreamPreferenceList) error {
 
-	body, err := httpDo(client, "GET", streamPrefsURL)
+	resp, err := rc.R().Get(streamPrefsURL)
 	if err != nil {
 		return errors.Wrap(err, "Could not get stream preferences list")
 	}
 
-	if err := json.Unmarshal(body, streamPrefsList); err != nil {
+	if err := json.Unmarshal(resp.Body(), streamPrefsList); err != nil {
 		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", streamPrefsList)
 	}
 
@@ -227,9 +166,12 @@ func GetStreamPrefsList(client *http.Client, streamPrefsList *StreamPreferenceLi
 }
 
 // SetStreamPrefs ---
-func SetStreamPrefs(client *http.Client, params *SetStreamPrefsParams) error {
+func setStreamPrefs(rc *resty.Client, params map[string]string) error {
 
-	if err := SetInoreader(client, streamPrefsSetURL, params); err != nil {
+	_, err := rc.R().
+		SetQueryParams(params).
+		Post(streamPrefsSetURL)
+	if err != nil {
 		return errors.Wrap(err, "Could not set stream preferences")
 	}
 
@@ -237,25 +179,27 @@ func SetStreamPrefs(client *http.Client, params *SetStreamPrefsParams) error {
 }
 
 // RenameTag ---
-func RenameTag(client *http.Client, params *RenameTagParams) error {
+func renameTag(rc *resty.Client, params map[string]string) error {
 
-	url := baseURL + "/rename-tag"
-	if err := SetInoreader(client, url, params); err != nil {
-		return errors.Wrapf(err, "Could not rename %s tag to %s", params.Source, params.Dest)
+	_, err := rc.R().
+		SetQueryParams(params).
+		Post(baseURL + "/rename-tag")
+	if err != nil {
+		return errors.Wrap(err, "Could not rename tag")
 	}
 
 	return nil
 }
 
 // DeleteTag ---
-func DeleteTag(client *http.Client, tagName string) error {
+func deleteTag(rc *resty.Client, tagName string) error {
 
-	params := &DeleteTagParams{
-		StreamID: tagName,
-	}
-
-	url := baseURL + "/disable-tag"
-	if err := SetInoreader(client, url, params); err != nil {
+	_, err := rc.R().
+		SetQueryParams(map[string]string{
+			"s": tagName,
+		}).
+		Post(baseURL + "/disable-tag")
+	if err != nil {
 		return errors.Wrapf(err, "Could not delete tag %s", tagName)
 	}
 
@@ -263,10 +207,12 @@ func DeleteTag(client *http.Client, tagName string) error {
 }
 
 // EditTag ---
-func EditTag(client *http.Client, params *EditTagParams) error {
+func editTag(rc *resty.Client, params map[string]string) error {
 
-	url := baseURL + "/edit-tag"
-	if err := SetInoreader(client, url, params); err != nil {
+	_, err := rc.R().
+		SetQueryParams(params).
+		Post(baseURL + "/edit-tag")
+	if err != nil {
 		return errors.Wrap(err, "Could not edit tag")
 	}
 
@@ -274,11 +220,13 @@ func EditTag(client *http.Client, params *EditTagParams) error {
 }
 
 // MarkAllAsRead ---
-func MarkAllAsRead(client *http.Client, params *MarkAllAsReadParams) error {
+func markAllAsRead(rc *resty.Client, params map[string]string) error {
 
-	url := baseURL + "/mark-all-as-read"
-	if err := SetInoreader(client, url, params); err != nil {
-		return errors.Wrapf(err, "Could not mark all items in %s as read", params.StreamID)
+	_, err := rc.R().
+		SetQueryParams(params).
+		Post(baseURL + "/mark-all-as-read")
+	if err != nil {
+		return errors.Wrap(err, "Could not mark all items as read")
 	}
 
 	return nil

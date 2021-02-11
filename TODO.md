@@ -1,10 +1,11 @@
 # TODO 
 
-As of 2021-02-01 21:33:09
+As of 2021-02-11 05:15:23
 
 - [x] Add base API methods
 - [ ] `cmd/go-inoreader/main.go`
     - [ ] Use [flag](https://golang.org/pkg/flag/) package to handle command-line args
+    - [ ] Implement [command structure](cli-structure.md)
 - [ ] Remove unneeded type definitions
 - [ ] Add configuration settings
     - [x] OAuth2 flow

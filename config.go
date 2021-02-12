@@ -11,21 +11,13 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// FIXME: refactor and make this more efficient
-//  This most likely does not need to be a strucc
-//  Store / pick up client ID and client secret from config
-//  Unexport these, since they are all in one package
-type cfgFile struct {
-	FilePath string
-	Contents *Configuration
+type config struct {
+	*oauth2.Token
 }
 
-// Configuration ---
-type Configuration struct {
-	Oauth2Response *oauth2.Token
-}
-
-// GetcfgFilePath ---
+// Get the path of the configuration file
+// On Unix/Linux: $XDG_DATA_HOME/go-inoreader.json
+// On Windows: %APPDATA%\go-inoreader.json
 func getCfgFilePath() string {
 
 	homeDir, _ := os.UserHomeDir()
@@ -42,22 +34,9 @@ func getCfgFilePath() string {
 	return fileName
 }
 
-func newCfgFile(filePath string, data []byte) (*cfgFile, error) {
+func writeCfgFile(filepath string, oauth2Resp *oauth2.Token) error {
 
-	conf := &Configuration{}
-	if err := json.Unmarshal(data, &conf); err != nil {
-		return nil, errors.Wrap(err, "Could not unmarshal JSON data")
-	}
-
-	return &cfgFile{
-		FilePath: filePath,
-		Contents: conf,
-	}, nil
-}
-
-func (cf *cfgFile) writeCfgFile() error {
-
-	jsonData, err := json.MarshalIndent(&cf.Contents, "", "    ")
+	jsonData, err := json.MarshalIndent(&oauth2Resp, "", "    ")
 	if err != nil {
 		return errors.Wrap(err, "Could not marshal JSON data to file")
 	}
@@ -67,8 +46,8 @@ func (cf *cfgFile) writeCfgFile() error {
 	// would be 0644 (rw-r--r--).
 	// As per https://golang.org/pkg/os/#FileMode, the mode bits have the same definition
 	// on all systems, thus '0666' can be used for Windows and Unix alike.
-	if err = ioutil.WriteFile(cf.FilePath, jsonData, 0666); err != nil {
-		return errors.Wrapf(err, "Could not write to config file: %s\n", cf.FilePath)
+	if err = ioutil.WriteFile(filepath, jsonData, 0666); err != nil {
+		return errors.Wrapf(err, "Could not write to config file: %s\n", filepath)
 	}
 
 	return nil

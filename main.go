@@ -9,14 +9,14 @@ import (
 // Init --- Initiate Oauth flow
 func Init() {
 	ctx, cancel := context.WithCancel(context.Background())
-	http.HandleFunc("/", HandleInoreaderLogin)
-	http.HandleFunc("/oauth2/redirect", HandleInoreaderCallback)
+	http.HandleFunc("/", handleInoreaderLogin)
+	http.HandleFunc("/oauth/redirect", handleInoreaderCallback)
 	http.HandleFunc("/go-inoreader", func(w http.ResponseWriter, r *http.Request) {
-		ServeTemplate(w, r)
+		serveTemplate(w, r)
 		cancel()
 	})
 
-	srv := &http.Server{Addr: ":53682"}
+	srv := &http.Server{Addr: ":8081"}
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			log.Printf("Server error: %s", err.Error())

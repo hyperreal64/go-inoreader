@@ -10,7 +10,7 @@ As of 2021-02-11 05:15:23
 - [ ] Add configuration settings
     - [x] OAuth2 flow
     - [ ] Make HTML template conditional on success/failure of OAuth2 flow
-    - [x] Save configuration info to `$XDG_DATA_HOME/go-inoreader.json` on Unix/Linux and `%APPDATA/go-inoreader.json` on Windows
+    - [x] Save configuration info to `$XDG_DATA_HOME/go-inoreader.json` on Unix/Linux and `%APPDATA%\go-inoreader.json` on Windows
 - [x] Use [go-querystring](https://github.com/google/go-querystring) for more type-safe query parameter handling
     - [x] Add type definitions for base API methods that use query parameters
 - [ ] Support various output formats for streams/items: JSON, CSV

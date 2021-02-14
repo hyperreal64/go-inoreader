@@ -21,16 +21,17 @@ func Test() {
 
 	// subList, _ := getSubscriptionList(rClient)
 	// printSubList(subList)
-	// unreadCounters, _ := getUnreadCounters(client)
-	// printUnreadCounts(subList, unreadCounters)
-	// tagList, _ := getTagList(client)
+	// unreadCounters, _ := getUnreadCounters(rClient)
+	// printUnreadSubCounts(subList, unreadCounters)
+	tagList, _ := getTagList(rClient)
 	// printTagFolderList(tagList)
+	printTagsXorFolders(tagList, "folders")
 
-	params := map[string]string{
-		"n": "5",
-		"s": "feed/http://www.osnews.com/files/recent.xml",
-	}
+	// params := map[string]string{
+	// 	"n": "5",
+	// 	"s": "feed/http://www.osnews.com/files/recent.xml",
+	// }
 
-	streamContents, _ := getStreamContents(rClient, params)
-	printStreamContents(streamContents)
+	// streamContents, _ := getStreamContents(rClient, params)
+	// printStreamContents(streamContents)
 }

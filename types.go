@@ -1,8 +1,6 @@
 package main
 
-import (
-	"encoding/json"
-)
+import "encoding/json"
 
 // UserInfo ---
 type UserInfo struct {

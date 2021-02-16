@@ -2,7 +2,7 @@
 
 WORK IN PROGRESS: An unofficial Inoreader API client for Go
 
-My general guidelines for coding this are:
+The general guidelines I use for coding this are:
 
 🚴 Stop [bike-shedding](https://en.wikipedia.org/wiki/Law_of_triviality)
 
@@ -12,9 +12,9 @@ My general guidelines for coding this are:
 
 🌟 Figure out how to make it better
 
---Inanc Gumus [(@inancgumus)](https://twitter.com/inancgumus)
+--Inanc Gumus [@inancgumus](https://twitter.com/inancgumus)
 
-To use this, you need to create a new application on Inoreader under Preferences > Developer. Set environment variables for INOREADER_CLIENT_ID and INOREADER_CLIENT_SECRET using the App ID and App Secret, respectively. On Unix/Linux shells, this can be done with the following commands:
+To use this, you need to create a new application on Inoreader under Preferences > Developer. On your system, set environment variables for INOREADER_CLIENT_ID and INOREADER_CLIENT_SECRET using the App ID and App Secret, respectively. On Unix/Linux shells, this can be done with the following commands:
 ```bash
 export INOREADER_CLIENT_ID=<app id>
 export INOREADER_CLIENT_SECRET=<app secret>

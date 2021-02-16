@@ -2,19 +2,37 @@ Inoreader command structure:
 [ ] `inoreader` Main command. If no args supplied, display usage info
     [ ] `login` - Initiate OAuth, save info to config
     [ ] `help` - Display help info
+    [ ] `add <streamID>` - Add subscription
     [X] `sub` - Query subscriptions; requires exactly one of below args @done(21-02-13 15:50)
-        [X] `list` - List subscriptions @done(21-02-13 15:50)
+        [X] `all` - List subscriptions @done(21-02-13 15:50)
         [X] `unread` - List only unread subs with counts @done(21-02-13 15:50)
+        [ ] `edit` - Edit a subscription
+            [ ] `-a <edit|subscribe|unsubscribe>` - Edit, subscribe, or unsubscribe from sub. REQUIRED
+            [ ] `-s <streamID>` - Stream ID of subscription. REQUIRED
+            [ ] `-t <title>` - Change the subscription title. Omit to keep title unchanged.
+            [ ] `-f <folder>` - Add subscription to folder. Use folder name like `user/-/label/Tech`
+            [ ] `-r <folder>` - Remove subscription from folder. Use folder name like `user/-/label/Tech`
     [X] `tags` - Query tags and folders; requires exactly one of below args @done(21-02-13 19:45)
-        [X] `list` - List all tags and folders; optional below args @done(21-02-13 19:45)
-            [X] `-t|--type <tags|folders>` - Specify and list only tags or folders (string) @done(21-02-13 19:45)
+        [X] `all` - List all tags and folders; optional below args @done(21-02-13 19:45)
+            [X] `-t|--type <tags|folders>` - Specify and list only tags XOR folders (string) @done(21-02-13 19:45)
         [X] `unread` - List only folders containing unread items with counts @done(21-02-13 19:45)
-    [ ] `stream <streamID>` - Query stream contents; requires at least one of below args
-        [ ] `-n <int>` - Specify numbers of items returned
-        [ ] `-r <newest|oldest>` - Specify order of items displayed
-        [ ] `-xt <streamID>` - Specify streamID of target to exclude
-        [ ] `-it <streamID>` - Specify streamID of target to include
-        [ ] `-s <itemID>` - Display summary of item
+            [X] `-t|--type <tags|folders>` - Specify and list only tags XOR folders with unread counts @done(21-02-15 14:37)
+        [ ] `edit` - Edit a tag on an item
+            [ ] `-a <tag>` - Tag to add
+            [ ] `-r <tag>` - Tag to remove
+            [ ] `-i <itemID>` - Item ID.
+        [ ] `mv` - Rename a tag
+            [ ] `-s <source tag>` - Source tag's name
+            [ ] `-d <dest tag>` - Destination tag's name
+        [ ] `rm <tag name>` - Delete a tag. Use full tag name like `user/-/label/Tech`
+    [X] `stream` - Query stream contents; requires at least one of below args @done(21-02-15 15:37)
+        [X] `-n <int>` - Specify numbers of items returned @done(21-02-15 15:37)
+        [X] `-r <newest|oldest>` - Specify order of items displayed @done(21-02-15 15:37)
+        [X] `-xt <streamID>` - Specify streamID of label to exclude @done(21-02-15 15:37)
+        [X] `-it <streamID>` - Specify streamID of label to include @done(21-02-15 15:37)
+        [X] `-s <streamID>` - Specify streamID of target @done(21-02-15 15:37)
+        [X] `-u` - Display with URL @done(21-02-15 19:59)
+    [X] `read <streamID>` - Mark a stream as read @done(21-02-15 17:15)
     [ ] `output <streamID|itemID>` - Fetch and save content to output format; requires at least one of below args
         [ ] `-m` - Export to Markdown
         [ ] `-c` - Export to CSV

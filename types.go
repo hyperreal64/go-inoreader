@@ -83,9 +83,7 @@ type Item struct {
 	Title         string        `json:"title"`
 	Published     int64         `json:"published"`
 	Updated       int           `json:"updated"`
-	Canonical     []interface{} `json:"canonical"`
-	Alternate     []interface{} `json:"alternate"`
-	Summary       interface{}   `json:"summary"`
+	Canonical     []Canonical   `json:"canonical"`
 	Author        string        `json:"author"`
 	LikingUsers   []interface{} `json:"likingUsers"`
 	Comments      []interface{} `json:"comments"`
@@ -94,7 +92,7 @@ type Item struct {
 	Origin        *Origin       `json:"origin"`
 }
 
-// Canonical --- of Items of StreamContents
+// Canonical ---
 type Canonical struct {
 	Href string `json:"href"`
 }
@@ -150,6 +148,8 @@ type UserStateComGoogleRoot struct {
 
 // BEGIN REQUEST PARAMETER TYPES
 
+// HACK: Maybe the types below could implement an interface
+
 // QuickAddParams ---
 type QuickAddParams struct {
 	QuickAdd string `url:"quickadd"`
@@ -174,11 +174,8 @@ type FolderTagListParams struct {
 type ContentsParams struct {
 	NumOfItems    string `url:"n"`
 	Order         string `url:"r"`
-	StartTime     string `url:"ot"`
 	ExcludeTarget string `url:"xt"`
 	IncludeTarget string `url:"it"`
-	Continuation  string `url:"c"`
-	Output        string `url:"output"`
 	StreamID      string `url:"s"`
 }
 

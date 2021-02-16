@@ -1,4 +1,4 @@
-# 100 Days of Code - Log
+# Log
 
 ### Day 1: February 13, 2021
 * Planned out some of the command line structure and implemented the functions for subcommands `sub all`, `sub unread`, `tag all`, `tag all -t <type>`, and `tag unread`.

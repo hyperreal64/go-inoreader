@@ -37,25 +37,21 @@ func getUserInfo(rc *resty.Client, userInfo *UserInfo) error {
 }
 
 // QuickAddSubscription ---
-func quickAddSubscription(rc *resty.Client, params map[string]string) error {
+func quickAddSubscription(rc *resty.Client, params map[string]string) (*QuickAdd, error) {
 
 	resp, err := rc.R().
 		SetQueryParams(params).
 		Post(addSubURL)
 	if err != nil {
-		return errors.Wrapf(err, "Could not not subscription")
+		return nil, errors.Wrapf(err, "Could not not subscription")
 	}
 
 	quickAdd := &QuickAdd{}
 	if err := json.Unmarshal(resp.Body(), quickAdd); err != nil {
-		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", quickAdd)
+		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", quickAdd)
 	}
 
-	if quickAdd.NumResults != 1 {
-		return errors.New("Feed not added")
-	}
-
-	return nil
+	return quickAdd, nil
 }
 
 // EditSubscription ---

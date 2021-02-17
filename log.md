@@ -15,3 +15,9 @@
 * [Golang Unit Testing - Golang Docs](https://golangdocs.com/golang-unit-testing)
 * [flag](https://golang.org/pkg/flag/)
 * [How to use the flag package in Go](https://www.digitalocean.com/community/tutorials/how-to-use-the-flag-package-in-go)
+
+### Day 3: February 16, 2021
+* Implemented the functions for `add`, `sub edit`, `tags edit`, `tags mv`, and `tags rm`.
+* Combined `subscription.go`, `tags.go`, and `stream.go` into `content.go`. I will need to add comments to `content.go` to explain what each function does, and include an outline/TOC at the beginning.
+* Started implementing the command logic using the flags package.
+* No unit testing today; I shall implement that tomorrow after I finish the command logic.

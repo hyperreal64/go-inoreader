@@ -15,13 +15,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type token struct {
-	AccessToken  string    `json:"access_token"`
-	TokenType    string    `json:"token_type"`
-	RefreshToken string    `json:"refresh_token"`
-	Expiry       time.Time `json:"expiry"`
-}
-
 type authTemplate struct {
 	Title   string
 	Message string
@@ -29,8 +22,8 @@ type authTemplate struct {
 
 var (
 	oauthConf = oauth2.Config{
-		ClientID:     os.Getenv("INOREADER_CLIENT_ID"),
-		ClientSecret: os.Getenv("INOREADER_CLIENT_SECRET"),
+		ClientID:     os.Getenv("INO_APP_ID"),
+		ClientSecret: os.Getenv("INO_APP_SEC"),
 		Scopes:       []string{"read", "write"},
 		RedirectURL:  "http://localhost:8081/oauth/redirect",
 		Endpoint: oauth2.Endpoint{
@@ -78,7 +71,7 @@ func handleInoreaderCallback(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/go-inoreader", http.StatusTemporaryRedirect)
 	}
 
-	writeCfgFile(getCfgFilePath(), token)
+	writeCfgFile(token)
 	if err != nil {
 		log.Println(err.Error())
 		http.Redirect(w, r, "/go-inoreader", http.StatusTemporaryRedirect)

@@ -22,18 +22,19 @@ const (
 )
 
 // GetUserInfo ---
-func getUserInfo(rc *resty.Client, userInfo *UserInfo) error {
+func getUserInfo(rc *resty.Client) (*UserInfo, error) {
 
 	resp, err := rc.R().Get(userInfoURL)
 	if err != nil {
-		return errors.Wrap(err, "Could not get user info")
+		return nil, errors.Wrap(err, "Could not get user info")
 	}
 
+	userInfo := &UserInfo{}
 	if err := json.Unmarshal(resp.Body(), userInfo); err != nil {
-		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", userInfo)
+		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", userInfo)
 	}
 
-	return nil
+	return userInfo, nil
 }
 
 // QuickAddSubscription ---

@@ -3,6 +3,7 @@ module github.com/hyperreal64/go-inoreader
 go 1.16
 
 require (
+	github.com/alecthomas/kong v0.2.15
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-resty/resty/v2 v2.5.0
 	github.com/olekukonko/tablewriter v0.0.5

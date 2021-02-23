@@ -1,11 +1,10 @@
-# TODO 
+# TODO
 
-As of 2021-02-11 05:15:23
-
+- [ ] Use a terminal user interface instead of printing to stdout. See https://github.com/avelino/awesome-go#advanced-console-uis
 - [x] Add base API methods
 - [ ] `cmd/go-inoreader/main.go`
-    - [ ] Use [flag](https://golang.org/pkg/flag/) package to handle command-line args
-    - [ ] Implement [command structure](cli-structure.md)
+    - [x] Use [kong](https://github.com/alecthomas/kong) package to handle command-line args
+    - [ ] Clean up and improve help messages
 - [ ] Remove unneeded type definitions
 - [ ] Add configuration settings
     - [x] OAuth2 flow
@@ -13,6 +12,31 @@ As of 2021-02-11 05:15:23
     - [x] Save configuration info to `$XDG_DATA_HOME/go-inoreader.json` on Unix/Linux and `%APPDATA%\go-inoreader.json` on Windows
 - [x] Use [go-querystring](https://github.com/google/go-querystring) for more type-safe query parameter handling
     - [x] Add type definitions for base API methods that use query parameters
+- [x] Use [go-resty](https://github.com/go-resty/resty) for HTTP requests 
 - [ ] Support various output formats for streams/items: JSON, CSV
 - [ ] Support formatting stream/item metadata and output for markdown
 - [ ] Support downloading OPML for subscriptions list
+- [x] Starring/unstarring items
+- [ ] Mark items as read/unread
+    - [ ] Notify user when item cannot be marked unread due to `timestampUsec` being older than the `firstitemsec` of its feed
+- [x] Mark all items in stream as read
+- [ ] `subscription.go`
+    - [x] `printSubList()`          : Print subscriptions list
+    - [x] `execAddSub()`            : Add subscription
+    - [x] `execEditSub()`           : Edit subscription
+    - [ ] `unsubscribe()`           : Unsubscribe
+    - [ ] `subscribe()`             : Subscribe
+    - [ ] `setSubTitle()`           : Change title of subscription
+    - [ ] `addSubToFolder()`        : Add subscription to folder
+    - [ ] `remSubFromFolder()`      : Remove subscription from folder
+- [ ] `tags.go`
+    - [x] `printTagsFolders()`      : Print tags and folders list
+    - [x] `execEditTagRead()`       : Tag an item as read
+    - [x] `execEditTagStar()`       : Tag an item as starred
+    - [x] `execRenameTag()`         : Rename a user-created tag
+    - [x] `execDelTag()`            : Delete a user-created tag
+- [ ] `stream.go`
+    - [x] `printStreamContentsWithDate()`       : Print stream contents with date
+    - [x] `printStreamContentsWithURL()`        : Print stream contents with URL
+    - [x] `printStreamContentsWithIDs()`        : Print stream contents with IDs
+    - [x] `execMarkStreamAsRead()`              : Mark stream as read

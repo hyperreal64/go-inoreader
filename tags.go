@@ -63,13 +63,20 @@ func printTagsFolders(onlyUnread bool, option string) {
 	table.Render()
 }
 
-// TODO: getItemID()
-func execEditTag(addTag string, remTag string, itemID string) string {
+// TODO: Notify user when item cannot be marked unread due to `timestampUsec` being older than `firstitemsec` of its feed
+func execEditTagRead(itemID string, markRead bool) {
 
-	params := map[string]string{
-		"a": addTag,
-		"r": remTag,
-		"i": itemID,
+	var params = make(map[string]string)
+	if markRead {
+		params = map[string]string{
+			"a": "user/-/state/com.google/read",
+			"i": itemID,
+		}
+	} else {
+		params = map[string]string{
+			"r": "user/-/state/com.google/read",
+			"i": itemID,
+		}
 	}
 
 	rClient, err := config2Client()
@@ -80,8 +87,30 @@ func execEditTag(addTag string, remTag string, itemID string) string {
 	if err := editTag(rClient, params); err != nil {
 		log.Fatalln(err)
 	}
+}
 
-	return fmt.Sprintf("Successfully edited tags for item: %s\n", itemID)
+func execEditTagStar(itemID string, star bool) {
+	var params = make(map[string]string)
+	if star {
+		params = map[string]string{
+			"a": "user/-/state/com.google/starred",
+			"i": itemID,
+		}
+	} else {
+		params = map[string]string{
+			"r": "user/-/state/com.google/starred",
+			"i": itemID,
+		}
+	}
+
+	rClient, err := config2Client()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if err := editTag(rClient, params); err != nil {
+		log.Fatalln(err)
+	}
 }
 
 func execRenameTag(src string, dest string) string {

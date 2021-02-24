@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -69,7 +68,7 @@ func printSubList(onlyUnread bool) {
 	table.Render()
 }
 
-func execAddSub(streamID string) string {
+func execAddSub(streamID string) {
 
 	params := map[string]string{
 		"quickadd": streamID,
@@ -88,26 +87,13 @@ func execAddSub(streamID string) string {
 	if quickAdd.NumResults < 1 {
 		log.Fatalln(err)
 	}
-
-	return fmt.Sprintf("Successfully added subscription: %s\n", quickAdd.StreamName)
 }
 
-func execEditSub(action string, streamID string, title string, folderAdd string, folderRem string) string {
+func execUnsubscribe(streamID string) {
 
-	var params = make(map[string]string)
-	params["ac"] = action
-	params["s"] = streamID
-
-	if title != "" {
-		params["t"] = title
-	}
-
-	if folderAdd != "" {
-		params["a"] = folderAdd
-	}
-
-	if folderRem != "" {
-		params["r"] = folderRem
+	params := map[string]string{
+		"ac": "unsubscribe",
+		"s":  streamID,
 	}
 
 	rClient, err := config2Client()
@@ -118,6 +104,58 @@ func execEditSub(action string, streamID string, title string, folderAdd string,
 	if err := editSubscription(rClient, params); err != nil {
 		log.Fatalln(err)
 	}
+}
 
-	return fmt.Sprintf("Successfully edited subscription: %s\n", title)
+func execSetSubTitle(title string, streamID string) {
+
+	params := map[string]string{
+		"ac": "edit",
+		"s":  streamID,
+		"t":  title,
+	}
+
+	rClient, err := config2Client()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if err := editSubscription(rClient, params); err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func execAddSubToFolder(folder string, streamID string) {
+
+	params := map[string]string{
+		"ac": "edit",
+		"s":  streamID,
+		"a":  folder,
+	}
+
+	rClient, err := config2Client()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if err := editSubscription(rClient, params); err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func execRemSubFromFolder(folder string, streamID string) {
+
+	params := map[string]string{
+		"ac": "edit",
+		"s":  streamID,
+		"r":  folder,
+	}
+
+	rClient, err := config2Client()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if err := editSubscription(rClient, params); err != nil {
+		log.Fatalln(err)
+	}
 }

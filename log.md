@@ -23,7 +23,7 @@
 * No unit testing today; I shall implement that tomorrow after I finish the command logic.
 
 ### February 23, 2021
-* Am now using the execellent [kong](https://github.com/alecthomas/kong) package to handle command line args.
+* Am now using the excellent [kong](https://github.com/alecthomas/kong) package to handle command line args.
 * Going to hold off on unit testing until this is feature-complete 
 * Made OAuth code and configuration code into one file. No reason to keep them separate.
 * Added more items to [TODO.md](TODO.md).

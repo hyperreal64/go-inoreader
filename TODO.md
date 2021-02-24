@@ -20,23 +20,24 @@
 - [ ] Mark items as read/unread
     - [ ] Notify user when item cannot be marked unread due to `timestampUsec` being older than the `firstitemsec` of its feed
 - [x] Mark all items in stream as read
-- [ ] `subscription.go`
+- [x] `subscription.go`
     - [x] `printSubList()`          : Print subscriptions list
     - [x] `execAddSub()`            : Add subscription
     - [x] `execEditSub()`           : Edit subscription
-    - [ ] `unsubscribe()`           : Unsubscribe
-    - [ ] `subscribe()`             : Subscribe
-    - [ ] `setSubTitle()`           : Change title of subscription
-    - [ ] `addSubToFolder()`        : Add subscription to folder
-    - [ ] `remSubFromFolder()`      : Remove subscription from folder
-- [ ] `tags.go`
+    - [x] `unsubscribe()`           : Unsubscribe
+    - [x] `setSubTitle()`           : Change title of subscription
+    - [x] `addSubToFolder()`        : Add subscription to folder
+    - [x] `remSubFromFolder()`      : Remove subscription from folder
+- [x] `tags.go`
     - [x] `printTagsFolders()`      : Print tags and folders list
     - [x] `execEditTagRead()`       : Tag an item as read
     - [x] `execEditTagStar()`       : Tag an item as starred
     - [x] `execRenameTag()`         : Rename a user-created tag
     - [x] `execDelTag()`            : Delete a user-created tag
-- [ ] `stream.go`
+- [x] `stream.go`
     - [x] `printStreamContentsWithDate()`       : Print stream contents with date
     - [x] `printStreamContentsWithURL()`        : Print stream contents with URL
     - [x] `printStreamContentsWithIDs()`        : Print stream contents with IDs
     - [x] `execMarkStreamAsRead()`              : Mark stream as read
+- [ ] `cmd.go`
+    - [ ] Command examples

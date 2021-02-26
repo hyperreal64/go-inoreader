@@ -68,8 +68,9 @@ func printSubList(onlyUnread bool) {
 	table.Render()
 }
 
-func execAddSub(streamID string) {
+func execAddSub(url string) {
 
+	streamID := "feed/" + url
 	params := map[string]string{
 		"quickadd": streamID,
 	}
@@ -89,8 +90,9 @@ func execAddSub(streamID string) {
 	}
 }
 
-func execUnsubscribe(streamID string) {
+func execUnsubscribe(url string) {
 
+	streamID := "feed/" + url
 	params := map[string]string{
 		"ac": "unsubscribe",
 		"s":  streamID,
@@ -106,8 +108,9 @@ func execUnsubscribe(streamID string) {
 	}
 }
 
-func execSetSubTitle(title string, streamID string) {
+func execSetSubTitle(title string, url string) {
 
+	streamID := "feed/" + url
 	params := map[string]string{
 		"ac": "edit",
 		"s":  streamID,
@@ -124,8 +127,9 @@ func execSetSubTitle(title string, streamID string) {
 	}
 }
 
-func execAddSubToFolder(folder string, streamID string) {
+func execAddSubToFolder(folder string, url string) {
 
+	streamID := "feed/" + url
 	params := map[string]string{
 		"ac": "edit",
 		"s":  streamID,
@@ -142,8 +146,9 @@ func execAddSubToFolder(folder string, streamID string) {
 	}
 }
 
-func execRemSubFromFolder(folder string, streamID string) {
+func execRemSubFromFolder(folder string, url string) {
 
+	streamID := "feed/" + url
 	params := map[string]string{
 		"ac": "edit",
 		"s":  streamID,

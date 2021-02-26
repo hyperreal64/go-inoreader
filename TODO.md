@@ -5,14 +5,14 @@
 - [ ] `cmd/go-inoreader/main.go`
     - [x] Use [kong](https://github.com/alecthomas/kong) package to handle command-line args
     - [ ] Clean up and improve help messages
+    - [ ] Set default values/display help message for subcommands used without arguments
 - [ ] Remove unneeded type definitions
 - [ ] Add configuration settings
     - [x] OAuth2 flow
     - [ ] Make HTML template conditional on success/failure of OAuth2 flow
     - [x] Save configuration info to `$XDG_DATA_HOME/go-inoreader.json` on Unix/Linux and `%APPDATA%\go-inoreader.json` on Windows
-- [x] Use [go-querystring](https://github.com/google/go-querystring) for more type-safe query parameter handling
-    - [x] Add type definitions for base API methods that use query parameters
-- [x] Use [go-resty](https://github.com/go-resty/resty) for HTTP requests 
+- [x] Use [go-resty](https://github.com/go-resty/resty) for HTTP requests
+- [ ] Use [tablewriter](https://github.com/olekukonko/tablewriter) for formatting output
 - [ ] Support various output formats for streams/items: JSON, CSV
 - [ ] Support formatting stream/item metadata and output for markdown
 - [ ] Support downloading OPML for subscriptions list
@@ -20,7 +20,7 @@
 - [ ] Mark items as read/unread
     - [ ] Notify user when item cannot be marked unread due to `timestampUsec` being older than the `firstitemsec` of its feed
 - [x] Mark all items in stream as read
-- [x] `subscription.go`
+- [ ] `subscription.go`
     - [x] `printSubList()`          : Print subscriptions list
     - [x] `execAddSub()`            : Add subscription
     - [x] `execEditSub()`           : Edit subscription
@@ -28,16 +28,17 @@
     - [x] `setSubTitle()`           : Change title of subscription
     - [x] `addSubToFolder()`        : Add subscription to folder
     - [x] `remSubFromFolder()`      : Remove subscription from folder
-- [x] `tags.go`
+- [ ] `tags.go`
     - [x] `printTagsFolders()`      : Print tags and folders list
     - [x] `execEditTagRead()`       : Tag an item as read
     - [x] `execEditTagStar()`       : Tag an item as starred
     - [x] `execRenameTag()`         : Rename a user-created tag
     - [x] `execDelTag()`            : Delete a user-created tag
-- [x] `stream.go`
+- [ ] `stream.go`
     - [x] `printStreamContentsWithDate()`       : Print stream contents with date
     - [x] `printStreamContentsWithURL()`        : Print stream contents with URL
     - [x] `printStreamContentsWithIDs()`        : Print stream contents with IDs
     - [x] `execMarkStreamAsRead()`              : Mark stream as read
+- [ ] fns in `subscription.go`, `tags.go`, `stream.go` should return errors up the chain
 - [ ] `cmd.go`
     - [ ] Command examples

@@ -123,8 +123,6 @@ func serveTemplate(w http.ResponseWriter, r *http.Request) {
 }
 
 type config struct {
-	appID  string
-	appSec string
 	*oauth2.Token
 }
 

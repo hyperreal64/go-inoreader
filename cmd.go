@@ -5,126 +5,209 @@ import (
 )
 
 // Context ---
-type Context struct {
-	Debug bool
-}
+// type Context struct {
+// 	Debug bool
+// }
 
 // LoginCmd ---
 type LoginCmd struct{}
 
 // Run (*LoginCmd) ---
-func (l *LoginCmd) Run(ctx *Context) error {
+func (l *LoginCmd) Run(ctx *kong.Context) error {
+
 	Init()
+
 	return nil
 }
 
 // AddCmd ---
 type AddCmd struct {
-	Add string `arg:"" required,name:"stream id" help:"Stream ID of subscription, i.e. user/-/label/Tech"`
+	URL string `arg:"" required,help:"URL of subscription feed"`
 }
 
 // Run (*AddCmd) ---
-func (a *AddCmd) Run(ctx *Context) error {
-	execAddSub(a.Add)
+func (a *AddCmd) Run(ctx *kong.Context) error {
+
+	execAddSub(a.URL)
+
 	return nil
 }
 
 // SubscriptionCmd ---
 type SubscriptionCmd struct {
-	List struct {
-		All    bool `arg,required,name:"all" short:"a" xor:"list" help:"List all subscriptions"`
-		Unread bool `arg,required,name:"unread" short:"u" xor:"list" help:"List only unread subscriptions"`
-	} `cmd:"" aliases:"ls" help:"List subscriptions"`
+	List ListCmd `cmd:"" aliases:"ls" help:"List subscriptions"`
 
-	Unsubscribe struct {
-		StreamID string `arg,required,name:"stream ID" help:"Unsubscribe from <stream ID>"`
-	} `cmd:"" aliases:"un" help:"Unsubscribe from <stream ID>"`
+	Unsubscribe UnsubscribeCmd `cmd:"" aliases:"un" help:"Unsubscribe from <url>"`
 
-	SetTitle struct {
-		Title    string `arg,required,name:"title" short:"t" help:"New title of subscription"`
-		StreamID string `arg,required,name:"stream ID" short:"s" help:"Stream ID of subscription to change"`
-	} `cmd:"" help:"Change the title of a subscription"`
+	SetTitle SetTitleCmd `cmd:"" aliases:"st" help:"Change the title of a subscription"`
 
-	AddToFolder struct {
-		Folder   string `arg,required,name:"folder" short:"f" help:"Folder to add subscription to"`
-		StreamID string `arg,required,name:"stream ID" short:"s" help:"Stream ID of subscription"`
-	} `cmd:"" help:"Add subscription to folder"`
+	AddToFolder AddToFolderCmd `cmd:"" aliases:"af" help:"Add subscription to folder"`
 
-	RemFromFolder struct {
-		Folder   string `arg,required,name:"folder" short:"f" help:"Folder to remove subscription from"`
-		StreamID string `arg,required,name:"stream ID" short:"s" help:"Stream ID of subscription"`
-	} `cmd:"" help:"Remove subscription from folder"`
+	RemFromFolder RemFromFolderCmd `cmd:"" aliases:"rf" help:"Remove subscription from folder"`
 }
 
 // Run (*SubscriptionCmd) ---
-func (s *SubscriptionCmd) Run(ctx *Context) error {
-	// TODO: Refactor
-	if s.List.All {
+func (s *SubscriptionCmd) Run(ctx *kong.Context) error {
+
+	return kong.DefaultHelpPrinter(kong.HelpOptions{
+		NoAppSummary: false,
+		Compact:      true,
+		Tree:         true,
+	}, ctx)
+}
+
+// ListCmd ---
+type ListCmd struct {
+	All    bool `required,name:"all" short:"a" xor:"list" help:"List all"`
+	Unread bool `required,name:"unread" short:"u" xor:"list" help:"List only unread"`
+}
+
+// Run (*ListCmd) ---
+func (l *ListCmd) Run(ctx *kong.Context) error {
+
+	if l.All {
 		printSubList(false)
 	}
 
-	if s.List.Unread {
+	if l.Unread {
 		printSubList(true)
 	}
 
-	execUnsubscribe(s.Unsubscribe.StreamID)
+	return nil
+}
 
-	execSetSubTitle(s.SetTitle.Title, s.SetTitle.StreamID)
+// UnsubscribeCmd ---
+type UnsubscribeCmd struct {
+	URL string `arg,required,help:"Unsubscribe from <url>"`
+}
 
-	execAddSubToFolder(s.AddToFolder.Folder, s.AddToFolder.StreamID)
+// Run (*UnsubscribeCmd) ---
+func (u *UnsubscribeCmd) Run(ctx *kong.Context) error {
 
-	execRemSubFromFolder(s.RemFromFolder.Folder, s.RemFromFolder.StreamID)
+	execUnsubscribe(u.URL)
+
+	return nil
+}
+
+// SetTitleCmd ---
+type SetTitleCmd struct {
+	Title string `arg,required,help:"New title of subscription"`
+	URL   string `arg,required,help:"URL of subscription to change"`
+}
+
+// Run (*SetTitleCmd) ---
+func (t *SetTitleCmd) Run(ctx *kong.Context) error {
+
+	execSetSubTitle(t.Title, t.URL)
+
+	return nil
+}
+
+// AddToFolderCmd ---
+type AddToFolderCmd struct {
+	Folder string `arg,required,help:"Folder to add subscription to"`
+	URL    string `arg,required,help:"URL of subscription"`
+}
+
+// Run (*AddToFolderCmd) ---
+func (a *AddToFolderCmd) Run(ctx *kong.Context) error {
+
+	execAddSubToFolder(a.Folder, a.URL)
+
+	return nil
+}
+
+// RemFromFolderCmd ---
+type RemFromFolderCmd struct {
+	Folder string `arg,required,short:"f" help:"Folder to remove subscription from"`
+	URL    string `arg,required,short:"u" help:"URL of subscription"`
+}
+
+// Run (*RemFromFolderCmd) ---
+func (r *RemFromFolderCmd) Run(ctx *kong.Context) error {
+
+	execRemSubFromFolder(r.Folder, r.URL)
 
 	return nil
 }
 
 // TagsCmd ---
 type TagsCmd struct {
-	List struct {
-		All    bool   `arg,required,name:"all" short:"a" xor:"list" help:"List all tags and/or folders"`
-		Unread bool   `arg,required,name:"unread" short:"u" xor:"list" help:"List only unread tags and/or folders"`
-		Type   string `arg,optional,name:"type" short:"t" placeholder:"tags|folders" help:"List either only tags or only folders"`
-	} `cmd:"" aliases:"ls" help:"List tags and/or folders"`
+	List ListCmd `cmd:"" aliases:"ls" help:"List tags and/or folders"`
 
-	Rename struct {
-		Src  string `arg,required,name:"src tag" short:"s" help:"Source tag name"`
-		Dest string `arg,required,name:"dest tag" short:"d" help:"Destination tag name"`
-	} `cmd:"" aliases:"mv" help:"Rename a tag"`
+	RenameTag RenameTagCmd `cmd:"" aliases:"mv" help:"Rename a tag"`
 
-	Delete struct {
-		Delete string `arg,required,name:"tag name" help:"Tag name to delete"`
-	} `cmd:"" aliases:"rm" help:"Delete"`
+	DeleteTag DeleteTagCmd `cmd:"" aliases:"rm" help:"Delete a tag"`
 }
 
 // Run (*TagsCmd) ---
-func (t *TagsCmd) Run(ctx *Context) error {
-	// TODO: Refactor
-	if t.List.All {
-		printTagsFolders(false, t.List.Type)
+func (t *TagsCmd) Run(ctx *kong.Context) error {
+
+	return kong.DefaultHelpPrinter(kong.HelpOptions{
+		NoAppSummary: false,
+		Compact:      true,
+		Tree:         true,
+	}, ctx)
+}
+
+// TagsListCmd ---
+type TagsListCmd struct {
+	*ListCmd
+	Type string `arg,optional,short:"t" placeholder:"tags|folders" help:"List either only tags or only folders"`
+}
+
+// Run (*TagsListCmd) ---
+func (t *TagsListCmd) Run(ctx *kong.Context) error {
+
+	if t.All {
+		printTagsFolders(false, t.Type)
 	}
 
-	if t.List.Unread {
-		printTagsFolders(true, t.List.Type)
+	if t.Unread {
+		printTagsFolders(true, t.Type)
 	}
 
-	execRenameTag(t.Rename.Src, t.Rename.Dest)
+	return nil
+}
 
-	execDelTag(t.Delete.Delete)
+// RenameTagCmd ---
+type RenameTagCmd struct {
+	Src  string `arg,required,short:"s" help:"Source tag name"`
+	Dest string `arg,required,short:"d" help:"Destination tag name"`
+}
+
+// Run (*RenameTagCmd) ---
+func (r *RenameTagCmd) Run(ctx *kong.Context) error {
+
+	execRenameTag(r.Src, r.Dest)
+
+	return nil
+}
+
+// DeleteTagCmd ---
+type DeleteTagCmd struct {
+	Delete string `arg,required,help:"Tag name to delete"`
+}
+
+// Run (*DeleteTagCmd) ---
+func (d *DeleteTagCmd) Run(ctx *kong.Context) error {
+
+	execDelTag(d.Delete)
 
 	return nil
 }
 
 // MarkItemCmd ---
 type MarkItemCmd struct {
-	Read   bool   `arg,name:"Read" short:"r" xor:"read" help:"Mark <itemID> as read"`
-	Unread bool   `arg,name:"Unread" xor:"read" help:"Mark <itemID> as unread"`
-	Star   bool   `arg,name:"Star" short:"s" xor:"star" help:"Star or unstar <itemID>"`
-	Unstar bool   `arg,name:"Unstar" xor:"star" help:"Unstar <itemID>"`
-	ItemID string `arg,required,name:"Item" help:"Item ID"`
+	Read   bool   `arg,short:"r" xor:"read" help:"Mark <itemID> as read"`
+	Unread bool   `arg,xor:"read" help:"Mark <itemID> as unread"`
+	Star   bool   `arg,short:"s" xor:"star" help:"Star or unstar <itemID>"`
+	Unstar bool   `arg,xor:"star" help:"Unstar <itemID>"`
+	ItemID string `arg,required,help:"Item ID"`
 }
 
 // Run (*MarkItemCmd) ---
-func (m *MarkItemCmd) Run(ctx *Context) error {
+func (m *MarkItemCmd) Run(ctx *kong.Context) error {
 
 	if m.Read {
 		execEditTagRead(m.ItemID, true)
@@ -147,17 +230,17 @@ func (m *MarkItemCmd) Run(ctx *Context) error {
 
 // StreamCmd ---
 type StreamCmd struct {
-	Num           string `arg,optional,name:"num" short:"n" default:"5" help:"Specify number of items returned"`
-	Order         string `arg,optional,name:"n|o" short:"r" default:"n" help:"Specify order of items returned, i.e. newest or oldest"`
-	ExcludeTarget string `arg,optional,name:"stream ID" short:"x" help:"Specify stream ID of target to exclude"`
-	IncludeTarget string `arg,optional,name:"stream ID" short:"i" help:"Specify stream ID of target to include"`
-	StreamID      string `arg,required,name:"stream ID" short:"s" help:"Specify stream ID of feed"`
+	Num           string `arg,optional,short:"n" default:"5" help:"Specify number of items returned"`
+	Order         string `arg,optional,enum:"n,o" short:"r" default:"n" help:"Specify order of items returned, i.e. newest or oldest"`
+	ExcludeTarget string `arg,optional,short:"x" help:"Specify stream ID of target to exclude"`
+	IncludeTarget string `arg,optional,short:"i" help:"Specify stream ID of target to include"`
+	StreamID      string `arg,required,short:"s" help:"Specify stream ID of feed"`
 	URLS          bool   `arg,optional,default:"false" xor:"stream" help:"Display items with their URLs"`
 	IDS           bool   `arg,optional,default:"false" xor:"stream" help:"Display items with their IDs"`
 }
 
 // Run (*StreamCmd) ---
-func (sc *StreamCmd) Run(ctx *Context) error {
+func (sc *StreamCmd) Run(ctx *kong.Context) error {
 	if sc.URLS {
 		printStreamContentsWithURL(sc.Num, sc.Order, sc.ExcludeTarget, sc.IncludeTarget, sc.StreamID)
 	} else if sc.IDS {
@@ -171,11 +254,12 @@ func (sc *StreamCmd) Run(ctx *Context) error {
 
 // ReadCmd ---
 type ReadCmd struct {
-	StreamID string `arg,required,name:"stream ID" short:"s" help:"Enter stream ID or feed URL to mark as read"`
+	StreamID string `arg,required,short:"s" help:"Enter stream ID or feed URL to mark as read"`
 }
 
 // Run (*ReadCmd) ---
-func (r *ReadCmd) Run(ctx *Context) error {
+func (r *ReadCmd) Run(ctx *kong.Context) error {
+
 	execMarkStreamAsRead(r.StreamID)
 
 	return nil
@@ -201,7 +285,15 @@ var cli struct {
 
 func main() {
 
-	ctx := kong.Parse(&cli)
-	err := ctx.Run(&Context{Debug: cli.Debug})
+	ctx := kong.Parse(&cli,
+		kong.Name("go-inoreader"),
+		kong.Description("An Inoreader API client for GoLang"),
+		kong.UsageOnError(),
+		kong.ConfigureHelp(kong.HelpOptions{
+			NoAppSummary: false,
+			Compact:      true,
+			Tree:         true,
+		}))
+	err := ctx.Run(&kong.Context{})
 	ctx.FatalIfErrorf(err)
 }

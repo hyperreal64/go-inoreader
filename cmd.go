@@ -4,11 +4,6 @@ import (
 	"github.com/alecthomas/kong"
 )
 
-// Context ---
-// type Context struct {
-// 	Debug bool
-// }
-
 // LoginCmd ---
 type LoginCmd struct{}
 
@@ -28,7 +23,9 @@ type AddCmd struct {
 // Run (*AddCmd) ---
 func (a *AddCmd) Run(ctx *kong.Context) error {
 
-	execAddSub(a.URL)
+	if err := execAddSub(a.URL); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -66,11 +63,15 @@ type ListCmd struct {
 func (l *ListCmd) Run(ctx *kong.Context) error {
 
 	if l.All {
-		printSubList(false)
+		if err := printSubList(false); err != nil {
+			return err
+		}
 	}
 
 	if l.Unread {
-		printSubList(true)
+		if err := printSubList(true); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -84,7 +85,9 @@ type UnsubscribeCmd struct {
 // Run (*UnsubscribeCmd) ---
 func (u *UnsubscribeCmd) Run(ctx *kong.Context) error {
 
-	execUnsubscribe(u.URL)
+	if err := execUnsubscribe(u.URL); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -98,7 +101,9 @@ type SetTitleCmd struct {
 // Run (*SetTitleCmd) ---
 func (t *SetTitleCmd) Run(ctx *kong.Context) error {
 
-	execSetSubTitle(t.Title, t.URL)
+	if err := execSetSubTitle(t.Title, t.URL); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -112,7 +117,9 @@ type AddToFolderCmd struct {
 // Run (*AddToFolderCmd) ---
 func (a *AddToFolderCmd) Run(ctx *kong.Context) error {
 
-	execAddSubToFolder(a.Folder, a.URL)
+	if err := execAddSubToFolder(a.Folder, a.URL); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -126,7 +133,9 @@ type RemFromFolderCmd struct {
 // Run (*RemFromFolderCmd) ---
 func (r *RemFromFolderCmd) Run(ctx *kong.Context) error {
 
-	execRemSubFromFolder(r.Folder, r.URL)
+	if err := execRemSubFromFolder(r.Folder, r.URL); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -160,11 +169,15 @@ type TagsListCmd struct {
 func (t *TagsListCmd) Run(ctx *kong.Context) error {
 
 	if t.All {
-		printTagsFolders(false, t.Type)
+		if err := printTagsFolders(false, t.Type); err != nil {
+			return err
+		}
 	}
 
 	if t.Unread {
-		printTagsFolders(true, t.Type)
+		if err := printTagsFolders(true, t.Type); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -179,7 +192,9 @@ type RenameTagCmd struct {
 // Run (*RenameTagCmd) ---
 func (r *RenameTagCmd) Run(ctx *kong.Context) error {
 
-	execRenameTag(r.Src, r.Dest)
+	if err := execRenameTag(r.Src, r.Dest); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -192,7 +207,9 @@ type DeleteTagCmd struct {
 // Run (*DeleteTagCmd) ---
 func (d *DeleteTagCmd) Run(ctx *kong.Context) error {
 
-	execDelTag(d.Delete)
+	if err := execDelTag(d.Delete); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -210,19 +227,27 @@ type MarkItemCmd struct {
 func (m *MarkItemCmd) Run(ctx *kong.Context) error {
 
 	if m.Read {
-		execEditTagRead(m.ItemID, true)
+		if err := execEditTagRead(m.ItemID, true); err != nil {
+			return err
+		}
 	}
 
 	if m.Unread {
-		execEditTagRead(m.ItemID, false)
+		if err := execEditTagRead(m.ItemID, false); err != nil {
+			return err
+		}
 	}
 
 	if m.Star {
-		execEditTagStar(m.ItemID, true)
+		if err := execEditTagStar(m.ItemID, true); err != nil {
+			return err
+		}
 	}
 
 	if m.Unstar {
-		execEditTagStar(m.ItemID, false)
+		if err := execEditTagStar(m.ItemID, false); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -242,11 +267,17 @@ type StreamCmd struct {
 // Run (*StreamCmd) ---
 func (sc *StreamCmd) Run(ctx *kong.Context) error {
 	if sc.URLS {
-		printStreamContentsWithURL(sc.Num, sc.Order, sc.ExcludeTarget, sc.IncludeTarget, sc.StreamID)
+		if err := printStreamContentsWithURL(sc.Num, sc.Order, sc.ExcludeTarget, sc.IncludeTarget, sc.StreamID); err != nil {
+			return err
+		}
 	} else if sc.IDS {
-		printStreamContentsWithIDs(sc.Num, sc.Order, sc.ExcludeTarget, sc.IncludeTarget, sc.StreamID)
+		if err := printStreamContentsWithIDs(sc.Num, sc.Order, sc.ExcludeTarget, sc.IncludeTarget, sc.StreamID); err != nil {
+			return err
+		}
 	} else {
-		printStreamContentsWithDate(sc.Num, sc.Order, sc.ExcludeTarget, sc.IncludeTarget, sc.StreamID)
+		if err := printStreamContentsWithDate(sc.Num, sc.Order, sc.ExcludeTarget, sc.IncludeTarget, sc.StreamID); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -260,7 +291,9 @@ type ReadCmd struct {
 // Run (*ReadCmd) ---
 func (r *ReadCmd) Run(ctx *kong.Context) error {
 
-	execMarkStreamAsRead(r.StreamID)
+	if err := execMarkStreamAsRead(r.StreamID); err != nil {
+		return err
+	}
 
 	return nil
 }

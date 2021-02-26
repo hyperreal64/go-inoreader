@@ -19,6 +19,8 @@ const (
 	itemIDsURL        = baseURL + "/stream/items/ids"
 	streamPrefsURL    = baseURL + "/preference/stream/list"
 	streamPrefsSetURL = baseURL + "/preference/stream/set"
+
+	getRestyErr string = "Could not get resty client"
 )
 
 // GetUserInfo ---
@@ -44,7 +46,7 @@ func quickAddSubscription(rc *resty.Client, params map[string]string) (*QuickAdd
 		SetQueryParams(params).
 		Post(addSubURL)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Could not not subscription")
+		return nil, err
 	}
 
 	quickAdd := &QuickAdd{}
@@ -62,7 +64,7 @@ func editSubscription(rc *resty.Client, params map[string]string) error {
 		SetQueryParams(params).
 		Post(editSubURL)
 	if err != nil {
-		return errors.Wrap(err, "Could not edit subscription")
+		return err
 	}
 
 	return nil
@@ -72,7 +74,7 @@ func getSubscriptionList(rc *resty.Client) (*SubscriptionList, error) {
 
 	resp, err := rc.R().Get(subListURL)
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not get subscription list")
+		return nil, err
 	}
 
 	subList := &SubscriptionList{}
@@ -87,7 +89,7 @@ func getUnreadCounters(rc *resty.Client) (*UnreadCounters, error) {
 
 	resp, err := rc.R().Get(unreadCountersURL)
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not get unread counters")
+		return nil, err
 	}
 
 	unreadCounters := &UnreadCounters{}
@@ -102,7 +104,7 @@ func getTagList(rc *resty.Client) (*TagFolderList, error) {
 
 	resp, err := rc.R().Get(tagListURL)
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not get tag/folder list")
+		return nil, err
 	}
 
 	tagList := &TagFolderList{}
@@ -119,7 +121,7 @@ func getStreamContents(rc *resty.Client, params map[string]string) (*StreamConte
 		SetQueryParams(params).
 		Get(streamContentsURL)
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not get stream contents")
+		return nil, err
 	}
 
 	streamContents := &StreamContents{}
@@ -137,7 +139,7 @@ func getItemIDs(rc *resty.Client, itemIDs *ItemIDs, params map[string]string) er
 		SetQueryParams(params).
 		Get(itemIDsURL)
 	if err != nil {
-		return errors.Wrap(err, "Could not get item IDs")
+		return err
 	}
 
 	if err := json.Unmarshal(resp.Body(), itemIDs); err != nil {
@@ -152,7 +154,7 @@ func getStreamPrefsList(rc *resty.Client, streamPrefsList *StreamPreferenceList)
 
 	resp, err := rc.R().Get(streamPrefsURL)
 	if err != nil {
-		return errors.Wrap(err, "Could not get stream preferences list")
+		return err
 	}
 
 	if err := json.Unmarshal(resp.Body(), streamPrefsList); err != nil {
@@ -169,7 +171,7 @@ func setStreamPrefs(rc *resty.Client, params map[string]string) error {
 		SetQueryParams(params).
 		Post(streamPrefsSetURL)
 	if err != nil {
-		return errors.Wrap(err, "Could not set stream preferences")
+		return err
 	}
 
 	return nil
@@ -182,7 +184,7 @@ func renameTag(rc *resty.Client, params map[string]string) error {
 		SetQueryParams(params).
 		Post(baseURL + "/rename-tag")
 	if err != nil {
-		return errors.Wrap(err, "Could not rename tag")
+		return err
 	}
 
 	return nil
@@ -197,7 +199,7 @@ func deleteTag(rc *resty.Client, tagName string) error {
 		}).
 		Post(baseURL + "/disable-tag")
 	if err != nil {
-		return errors.Wrapf(err, "Could not delete tag %s", tagName)
+		return err
 	}
 
 	return nil
@@ -210,7 +212,7 @@ func editTag(rc *resty.Client, params map[string]string) error {
 		SetQueryParams(params).
 		Post(baseURL + "/edit-tag")
 	if err != nil {
-		return errors.Wrap(err, "Could not edit tag")
+		return err
 	}
 
 	return nil
@@ -223,7 +225,7 @@ func markAllAsRead(rc *resty.Client, params map[string]string) error {
 		SetQueryParams(params).
 		Post(baseURL + "/mark-all-as-read")
 	if err != nil {
-		return errors.Wrap(err, "Could not mark all items as read")
+		return err
 	}
 
 	return nil

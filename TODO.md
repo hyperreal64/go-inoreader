@@ -1,6 +1,8 @@
 # TODO
 
-- [ ] Use a terminal user interface instead of printing to stdout. See https://github.com/avelino/awesome-go#advanced-console-uis
+- [ ] Implement an option for an interactive terminal user interface. See https://github.com/avelino/awesome-go#advanced-console-uis
+    - [ ] May require using an actual database
+    - [ ] Keep terminal UI code separate and abstract enough to work in a plugin sort of way
 - [x] Add base API methods
 - [ ] `cmd/go-inoreader/main.go`
     - [x] Use [kong](https://github.com/alecthomas/kong) package to handle command-line args
@@ -12,7 +14,7 @@
     - [ ] Make HTML template conditional on success/failure of OAuth2 flow
     - [x] Save configuration info to `$XDG_DATA_HOME/go-inoreader.json` on Unix/Linux and `%APPDATA%\go-inoreader.json` on Windows
 - [x] Use [go-resty](https://github.com/go-resty/resty) for HTTP requests
-- [ ] Use [tablewriter](https://github.com/olekukonko/tablewriter) for formatting output
+- [x] Use [tablewriter](https://github.com/olekukonko/tablewriter) for formatting output
 - [ ] Support various output formats for streams/items: JSON, CSV
 - [ ] Support formatting stream/item metadata and output for markdown
 - [ ] Support downloading OPML for subscriptions list
@@ -20,7 +22,7 @@
 - [ ] Mark items as read/unread
     - [ ] Notify user when item cannot be marked unread due to `timestampUsec` being older than the `firstitemsec` of its feed
 - [x] Mark all items in stream as read
-- [ ] `subscription.go`
+- [x] `subscription.go`
     - [x] `printSubList()`          : Print subscriptions list
     - [x] `execAddSub()`            : Add subscription
     - [x] `execEditSub()`           : Edit subscription
@@ -28,17 +30,19 @@
     - [x] `setSubTitle()`           : Change title of subscription
     - [x] `addSubToFolder()`        : Add subscription to folder
     - [x] `remSubFromFolder()`      : Remove subscription from folder
-- [ ] `tags.go`
+- [x] `tags.go`
     - [x] `printTagsFolders()`      : Print tags and folders list
     - [x] `execEditTagRead()`       : Tag an item as read
     - [x] `execEditTagStar()`       : Tag an item as starred
     - [x] `execRenameTag()`         : Rename a user-created tag
     - [x] `execDelTag()`            : Delete a user-created tag
-- [ ] `stream.go`
+- [x] `stream.go`
     - [x] `printStreamContentsWithDate()`       : Print stream contents with date
     - [x] `printStreamContentsWithURL()`        : Print stream contents with URL
     - [x] `printStreamContentsWithIDs()`        : Print stream contents with IDs
     - [x] `execMarkStreamAsRead()`              : Mark stream as read
-- [ ] fns in `subscription.go`, `tags.go`, `stream.go` should return errors up the chain
+- [x] fns in `subscription.go`, `tags.go`, `stream.go` should return errors up the chain
+- [ ] Handle cancelled context from `authConfig.go`
 - [ ] `cmd.go`
     - [ ] Command examples
+- [ ] Refactor `base.go`: Separating e.g. `quickAddSubscription` from `subscription.go` seems arbitrary for most if not all functions. Maybe combine/refactor functions that operate on the same Inoreader API methods in their respective files.

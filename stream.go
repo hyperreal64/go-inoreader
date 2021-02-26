@@ -1,21 +1,21 @@
 package main
 
 import (
-	"log"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/olekukonko/tablewriter"
+	"github.com/pkg/errors"
 )
 
 const timeFormLong = "Mon 2 Jan 2006 3:04 PM"
 
-func printStreamContentsWithDate(n string, r string, xt string, it string, s string) {
+func printStreamContentsWithDate(n string, r string, xt string, it string, s string) error {
 
 	rClient, err := config2Client()
 	if err != nil {
-		log.Fatalln(err)
+		return errors.Wrap(err, getRestyErr)
 	}
 
 	params := map[string]string{
@@ -28,7 +28,7 @@ func printStreamContentsWithDate(n string, r string, xt string, it string, s str
 
 	streamContents, err := getStreamContents(rClient, params)
 	if err != nil {
-		log.Fatalln(err)
+		return errors.Wrapf(err, "Could not get stream contents with parameters: %v", params)
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
@@ -38,13 +38,15 @@ func printStreamContentsWithDate(n string, r string, xt string, it string, s str
 		table.Append([]string{v.Origin.Title, v.Title, time.Unix(v.Published, 0).Format(timeFormLong)})
 	}
 	table.Render()
+
+	return nil
 }
 
-func printStreamContentsWithURL(n string, r string, xt string, it string, s string) {
+func printStreamContentsWithURL(n string, r string, xt string, it string, s string) error {
 
 	rClient, err := config2Client()
 	if err != nil {
-		log.Fatalln(err)
+		return errors.Wrap(err, getRestyErr)
 	}
 
 	params := map[string]string{
@@ -57,7 +59,7 @@ func printStreamContentsWithURL(n string, r string, xt string, it string, s stri
 
 	streamContents, err := getStreamContents(rClient, params)
 	if err != nil {
-		log.Fatalln(err)
+		return errors.Wrapf(err, "Could not get stream contents with parameters %v", params)
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
@@ -71,13 +73,15 @@ func printStreamContentsWithURL(n string, r string, xt string, it string, s stri
 		table.Append([]string{v.Origin.Title, v.Title, url})
 	}
 	table.Render()
+
+	return nil
 }
 
-func printStreamContentsWithIDs(n string, r string, xt string, it string, s string) {
+func printStreamContentsWithIDs(n string, r string, xt string, it string, s string) error {
 
 	rClient, err := config2Client()
 	if err != nil {
-		log.Fatalln(err)
+		return errors.Wrap(err, getRestyErr)
 	}
 
 	params := map[string]string{
@@ -90,7 +94,7 @@ func printStreamContentsWithIDs(n string, r string, xt string, it string, s stri
 
 	streamContents, err := getStreamContents(rClient, params)
 	if err != nil {
-		log.Fatalln(err)
+		return errors.Wrapf(err, "Could not get stream contents with parameters %v", params)
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
@@ -101,9 +105,11 @@ func printStreamContentsWithIDs(n string, r string, xt string, it string, s stri
 		table.Append([]string{v.Origin.Title, v.Title, v.ID})
 	}
 	table.Render()
+
+	return nil
 }
 
-func execMarkStreamAsRead(streamID string) {
+func execMarkStreamAsRead(streamID string) error {
 
 	if strings.HasPrefix(streamID, "http") {
 		streamID = "feed/" + streamID
@@ -111,7 +117,7 @@ func execMarkStreamAsRead(streamID string) {
 
 	rClient, err := config2Client()
 	if err != nil {
-		log.Fatalln(err)
+		return errors.Wrap(err, getRestyErr)
 	}
 
 	params := map[string]string{
@@ -119,6 +125,8 @@ func execMarkStreamAsRead(streamID string) {
 	}
 
 	if err := markAllAsRead(rClient, params); err != nil {
-		log.Fatalln(err)
+		return errors.Wrapf(err, "Could not mark stream as read: %s", streamID)
 	}
+
+	return nil
 }

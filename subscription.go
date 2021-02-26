@@ -1,29 +1,29 @@
 package main
 
 import (
-	"log"
 	"os"
 	"strconv"
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
+	"github.com/pkg/errors"
 )
 
-func printSubList(onlyUnread bool) {
+func printSubList(onlyUnread bool) error {
 
 	rClient, err := config2Client()
 	if err != nil {
-		log.Fatalln(err)
+		return errors.Wrap(err, getRestyErr)
 	}
 
 	subList, err := getSubscriptionList(rClient)
 	if err != nil {
-		log.Fatalln(err)
+		return errors.Wrap(err, "Could not get subscription list")
 	}
 
 	unreadCounts, err := getUnreadCounters(rClient)
 	if err != nil {
-		log.Fatalln(err)
+		return errors.Wrap(err, "Could not get unread counters")
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
@@ -39,7 +39,7 @@ func printSubList(onlyUnread bool) {
 
 			count, err := v.Count.Int64()
 			if err != nil {
-				log.Fatalln(err)
+				return errors.Wrapf(err, "Could not convert %T to Int64", v.Count)
 			}
 
 			var (
@@ -66,9 +66,11 @@ func printSubList(onlyUnread bool) {
 		}
 	}
 	table.Render()
+
+	return nil
 }
 
-func execAddSub(url string) {
+func execAddSub(url string) error {
 
 	streamID := "feed/" + url
 	params := map[string]string{
@@ -77,20 +79,22 @@ func execAddSub(url string) {
 
 	rClient, err := config2Client()
 	if err != nil {
-		log.Fatalln(err)
+		return errors.Wrap(err, getRestyErr)
 	}
 
 	quickAdd, err := quickAddSubscription(rClient, params)
 	if err != nil {
-		log.Fatalln(err)
+		return err
 	}
 
-	if quickAdd.NumResults < 1 {
-		log.Fatalln(err)
+	if quickAdd.NumResults == 0 {
+		return errors.New("Please check if the URL is correct")
 	}
+
+	return nil
 }
 
-func execUnsubscribe(url string) {
+func execUnsubscribe(url string) error {
 
 	streamID := "feed/" + url
 	params := map[string]string{
@@ -100,15 +104,17 @@ func execUnsubscribe(url string) {
 
 	rClient, err := config2Client()
 	if err != nil {
-		log.Fatalln(err)
+		return errors.Wrap(err, getRestyErr)
 	}
 
 	if err := editSubscription(rClient, params); err != nil {
-		log.Fatalln(err)
+		return errors.Wrapf(err, "Could not unsubscribe from subscription %s", url)
 	}
+
+	return nil
 }
 
-func execSetSubTitle(title string, url string) {
+func execSetSubTitle(title string, url string) error {
 
 	streamID := "feed/" + url
 	params := map[string]string{
@@ -119,15 +125,17 @@ func execSetSubTitle(title string, url string) {
 
 	rClient, err := config2Client()
 	if err != nil {
-		log.Fatalln(err)
+		return errors.Wrap(err, getRestyErr)
 	}
 
 	if err := editSubscription(rClient, params); err != nil {
-		log.Fatalln(err)
+		return errors.Wrapf(err, "Could not set title %s on subscription %s", title, url)
 	}
+
+	return nil
 }
 
-func execAddSubToFolder(folder string, url string) {
+func execAddSubToFolder(folder string, url string) error {
 
 	streamID := "feed/" + url
 	params := map[string]string{
@@ -138,15 +146,17 @@ func execAddSubToFolder(folder string, url string) {
 
 	rClient, err := config2Client()
 	if err != nil {
-		log.Fatalln(err)
+		return errors.Wrap(err, getRestyErr)
 	}
 
 	if err := editSubscription(rClient, params); err != nil {
-		log.Fatalln(err)
+		return errors.Wrapf(err, "Could not add subscription %s to folder %s", url, folder)
 	}
+
+	return nil
 }
 
-func execRemSubFromFolder(folder string, url string) {
+func execRemSubFromFolder(folder string, url string) error {
 
 	streamID := "feed/" + url
 	params := map[string]string{
@@ -157,10 +167,12 @@ func execRemSubFromFolder(folder string, url string) {
 
 	rClient, err := config2Client()
 	if err != nil {
-		log.Fatalln(err)
+		return errors.Wrap(err, getRestyErr)
 	}
 
 	if err := editSubscription(rClient, params); err != nil {
-		log.Fatalln(err)
+		return errors.Wrapf(err, "Could not remove subscription %s from folder %s", url, folder)
 	}
+
+	return nil
 }

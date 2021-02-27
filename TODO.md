@@ -45,4 +45,7 @@
 - [ ] Handle cancelled context from `authConfig.go`
 - [ ] `cmd.go`
     - [ ] Command examples
-- [ ] Refactor `base.go`: Separating e.g. `quickAddSubscription` from `subscription.go` seems arbitrary for most if not all functions. Maybe combine/refactor functions that operate on the same Inoreader API methods in their respective files.
+- [x] Refactor `base.go`
+- [ ] Colors in output
+- [ ] Sum unread count for all unread items
+

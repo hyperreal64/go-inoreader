@@ -1,13 +1,68 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 )
+
+func getTagList(rc *resty.Client) (*TagFolderList, error) {
+
+	resp, err := rc.R().Get(tagListURL)
+	if err != nil {
+		return nil, err
+	}
+
+	tagList := &TagFolderList{}
+	if err := json.Unmarshal(resp.Body(), tagList); err != nil {
+		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", tagList)
+	}
+
+	return tagList, nil
+}
+
+func renameTag(rc *resty.Client, params map[string]string) error {
+
+	_, err := rc.R().
+		SetQueryParams(params).
+		Post(baseURL + "/rename-tag")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func deleteTag(rc *resty.Client, tagName string) error {
+
+	_, err := rc.R().
+		SetQueryParams(map[string]string{
+			"s": tagName,
+		}).
+		Post(baseURL + "/disable-tag")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func editTag(rc *resty.Client, params map[string]string) error {
+
+	_, err := rc.R().
+		SetQueryParams(params).
+		Post(baseURL + "/edit-tag")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func printTagsFolders(onlyUnread bool, option string) error {
 

@@ -4,6 +4,19 @@ import (
 	"github.com/alecthomas/kong"
 )
 
+// UserInfoCmd ---
+type UserInfoCmd struct{}
+
+// Run (*UserInfoCmd) ---
+func (u *UserInfoCmd) Run(ctx *kong.Context) error {
+
+	if err := printUserInfo(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // LoginCmd ---
 type LoginCmd struct{}
 
@@ -32,7 +45,7 @@ func (a *AddCmd) Run(ctx *kong.Context) error {
 
 // SubscriptionCmd ---
 type SubscriptionCmd struct {
-	List ListCmd `cmd:"" aliases:"ls" help:"List subscriptions"`
+	List ListSubsCmd `cmd:"" aliases:"ls" help:"List subscriptions"`
 
 	Unsubscribe UnsubscribeCmd `cmd:"" aliases:"un" help:"Unsubscribe from <url>"`
 
@@ -46,21 +59,17 @@ type SubscriptionCmd struct {
 // Run (*SubscriptionCmd) ---
 func (s *SubscriptionCmd) Run(ctx *kong.Context) error {
 
-	return kong.DefaultHelpPrinter(kong.HelpOptions{
-		NoAppSummary: false,
-		Compact:      true,
-		Tree:         true,
-	}, ctx)
+	return nil
 }
 
-// ListCmd ---
-type ListCmd struct {
-	All    bool `required,name:"all" short:"a" xor:"list" help:"List all"`
-	Unread bool `required,name:"unread" short:"u" xor:"list" help:"List only unread"`
+// ListSubsCmd ---
+type ListSubsCmd struct {
+	All    bool `required,name:"all" short:"a" xor:"list" help:"List all subscriptions"`
+	Unread bool `required,name:"unread" short:"u" xor:"list" help:"List only unread subscriptions"`
 }
 
 // Run (*ListCmd) ---
-func (l *ListCmd) Run(ctx *kong.Context) error {
+func (l *ListSubsCmd) Run(ctx *kong.Context) error {
 
 	if l.All {
 		if err := printSubList(false); err != nil {
@@ -142,7 +151,7 @@ func (r *RemFromFolderCmd) Run(ctx *kong.Context) error {
 
 // TagsCmd ---
 type TagsCmd struct {
-	List ListCmd `cmd:"" aliases:"ls" help:"List tags and/or folders"`
+	List ListTagsCmd `cmd:"" aliases:"ls" help:"List tags and/or folders"`
 
 	RenameTag RenameTagCmd `cmd:"" aliases:"mv" help:"Rename a tag"`
 
@@ -152,21 +161,18 @@ type TagsCmd struct {
 // Run (*TagsCmd) ---
 func (t *TagsCmd) Run(ctx *kong.Context) error {
 
-	return kong.DefaultHelpPrinter(kong.HelpOptions{
-		NoAppSummary: false,
-		Compact:      true,
-		Tree:         true,
-	}, ctx)
+	return nil
 }
 
-// TagsListCmd ---
-type TagsListCmd struct {
-	*ListCmd
-	Type string `arg,optional,short:"t" placeholder:"tags|folders" help:"List either only tags or only folders"`
+// ListTagsCmd ---
+type ListTagsCmd struct {
+	All    bool   `required,name:"all" short:"a" xor:"list" help:"List all tags"`
+	Unread bool   `required,name:"unread" short:"u" xor:"list" help:"List only unread tags"`
+	Type   string `arg,optional,short:"t" placeholder:"tags|folders" help:"List either only tags or only folders"`
 }
 
-// Run (*TagsListCmd) ---
-func (t *TagsListCmd) Run(ctx *kong.Context) error {
+// Run (*ListTagsCmd) ---
+func (t *ListTagsCmd) Run(ctx *kong.Context) error {
 
 	if t.All {
 		if err := printTagsFolders(false, t.Type); err != nil {
@@ -299,7 +305,7 @@ func (r *ReadCmd) Run(ctx *kong.Context) error {
 }
 
 var cli struct {
-	Debug bool `help:"Enable debug mode"`
+	UserInfo UserInfoCmd `cmd:"" help:"Print Inoreader user information"`
 
 	Login LoginCmd `cmd:"" help:"Login and initiate Oauth flow"`
 

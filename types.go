@@ -9,7 +9,7 @@ type UserInfo struct {
 	UserProfileID       string `json:"userProfileId"`
 	UserEmail           string `json:"userEmail"`
 	IsBloggerUser       bool   `json:"isBloggerUser"`
-	SignupTimeSec       int    `json:"signupTimeSec"`
+	SignupTimeSec       int64  `json:"signupTimeSec"`
 	IsMultiLoginEnabled bool   `json:"isMultiLoginEnabled"`
 }
 
@@ -58,55 +58,37 @@ type TagFolderList struct {
 
 // StreamContents ---
 type StreamContents struct {
-	Direction    string      `json:"direction"`
-	ID           string      `json:"id"`
-	Title        string      `json:"title"`
-	Description  string      `json:"description"`
-	Updated      int         `json:"updated"`
-	UpdatedUsec  string      `json:"updatedUsec"`
-	Self         interface{} `json:"self"`
-	Items        []Item      `json:"items"`
-	Continuation string      `json:"continuation"`
-}
-
-// Self --- of StreamContents
-type Self struct {
-	Href string `json:"href"`
+	Direction   string `json:"direction"`
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Updated     int    `json:"updated"`
+	UpdatedUsec string `json:"updatedUsec"`
+	Self        struct {
+		Href string `json:"href"`
+	} `json:"self"`
+	Items        []Item `json:"items"`
+	Continuation string `json:"continuation"`
 }
 
 // Item --- of StreamContents
 type Item struct {
-	CrawlTimeMsec string        `json:"crawlTimeMsec"`
-	TimestampUsec string        `json:"timestampUsec"`
-	ID            string        `json:"id"`
-	Categories    []string      `json:"categories"`
-	Title         string        `json:"title"`
-	Published     int64         `json:"published"`
-	Updated       int           `json:"updated"`
-	Canonical     []Canonical   `json:"canonical"`
-	Author        string        `json:"author"`
-	LikingUsers   []interface{} `json:"likingUsers"`
-	Comments      []interface{} `json:"comments"`
-	CommentsNum   int           `json:"commentsNum"`
-	Annotations   []interface{} `json:"annotations"`
-	Origin        *Origin       `json:"origin"`
-}
-
-// Canonical ---
-type Canonical struct {
-	Href string `json:"href"`
-}
-
-// Alternate --- of Items of StreamContents
-type Alternate struct {
-	Href string `json:"href"`
-	Type string `json:"type"`
-}
-
-// Summary --- of Items of StreamContents
-type Summary struct {
-	Direction string `json:"direction"`
-	Content   string `json:"content"`
+	CrawlTimeMsec string   `json:"crawlTimeMsec"`
+	TimestampUsec string   `json:"timestampUsec"`
+	ID            string   `json:"id"`
+	Categories    []string `json:"categories"`
+	Title         string   `json:"title"`
+	Published     int64    `json:"published"`
+	Updated       int      `json:"updated"`
+	Canonical     []struct {
+		Href string `json:"href"`
+	} `json:"canonical"`
+	Author      string        `json:"author"`
+	LikingUsers []interface{} `json:"likingUsers"`
+	Comments    []interface{} `json:"comments"`
+	CommentsNum int           `json:"commentsNum"`
+	Annotations []interface{} `json:"annotations"`
+	Origin      *Origin       `json:"origin"`
 }
 
 // Origin --- of Items of StreamContents
@@ -144,68 +126,4 @@ type Streamprefs struct {
 type UserStateComGoogleRoot struct {
 	ID    string `json:"id"`
 	Value string `json:"value"`
-}
-
-// BEGIN REQUEST PARAMETER TYPES
-
-// HACK: Maybe the types below could implement an interface
-
-// QuickAddParams ---
-type QuickAddParams struct {
-	QuickAdd string `url:"quickadd"`
-}
-
-// EditSubParams ---
-type EditSubParams struct {
-	Action        string `url:"ac"`
-	StreamID      string `url:"s"`
-	Title         string `url:"t"`
-	AddToFolder   string `url:"a"`
-	RemFromFolder string `url:"r"`
-}
-
-// FolderTagListParams ---
-type FolderTagListParams struct {
-	Types  string `url:"types"`
-	Counts string `url:"counts"`
-}
-
-// ContentsParams --- for StreamContents and ItemIDs parameters
-type ContentsParams struct {
-	NumOfItems    string `url:"n"`
-	Order         string `url:"r"`
-	ExcludeTarget string `url:"xt"`
-	IncludeTarget string `url:"it"`
-	StreamID      string `url:"s"`
-}
-
-// SetStreamPrefsParams ---
-type SetStreamPrefsParams struct {
-	StreamID string `url:"s"`
-	Key      string `url:"k"`
-	Value    string `url:"v"`
-}
-
-// RenameTagParams ---
-type RenameTagParams struct {
-	Source string `url:"s"`
-	Dest   string `url:"dest"`
-}
-
-// DeleteTagParams ---
-type DeleteTagParams struct {
-	StreamID string `url:"s"`
-}
-
-// EditTagParams ---
-type EditTagParams struct {
-	Add    string `url:"a"`
-	Remove string `url:"r"`
-	ItemID string `url:"i"`
-}
-
-// MarkAllAsReadParams ---
-type MarkAllAsReadParams struct {
-	Timestamp string `url:"ts"`
-	StreamID  string `url:"s"`
 }

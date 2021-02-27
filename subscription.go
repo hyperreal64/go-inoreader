@@ -1,13 +1,74 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 )
+
+func quickAddSubscription(rc *resty.Client, params map[string]string) (*QuickAdd, error) {
+
+	resp, err := rc.R().
+		SetQueryParams(params).
+		Post(addSubURL)
+	if err != nil {
+		return nil, err
+	}
+
+	quickAdd := &QuickAdd{}
+	if err := json.Unmarshal(resp.Body(), quickAdd); err != nil {
+		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", quickAdd)
+	}
+
+	return quickAdd, nil
+}
+
+func editSubscription(rc *resty.Client, params map[string]string) error {
+
+	_, err := rc.R().
+		SetQueryParams(params).
+		Post(editSubURL)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getSubscriptionList(rc *resty.Client) (*SubscriptionList, error) {
+
+	resp, err := rc.R().Get(subListURL)
+	if err != nil {
+		return nil, err
+	}
+
+	subList := &SubscriptionList{}
+	if err := json.Unmarshal(resp.Body(), &subList); err != nil {
+		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", subList)
+	}
+
+	return subList, nil
+}
+
+func getUnreadCounters(rc *resty.Client) (*UnreadCounters, error) {
+
+	resp, err := rc.R().Get(unreadCountersURL)
+	if err != nil {
+		return nil, err
+	}
+
+	unreadCounters := &UnreadCounters{}
+	if err = json.Unmarshal(resp.Body(), &unreadCounters); err != nil {
+		return nil, errors.Wrapf(err, "Could not unmarshal JSON object %v", unreadCounters)
+	}
+
+	return unreadCounters, nil
+}
 
 func printSubList(onlyUnread bool) error {
 

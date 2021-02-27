@@ -1,15 +1,70 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 )
 
-const timeFormLong = "Mon 2 Jan 2006 3:04 PM"
+func getStreamContents(rc *resty.Client, params map[string]string) (*StreamContents, error) {
+
+	resp, err := rc.R().
+		SetQueryParams(params).
+		Get(streamContentsURL)
+	if err != nil {
+		return nil, err
+	}
+
+	streamContents := &StreamContents{}
+	if err := json.Unmarshal(resp.Body(), streamContents); err != nil {
+		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", streamContents)
+	}
+
+	return streamContents, nil
+}
+
+func getStreamPrefsList(rc *resty.Client, streamPrefsList *StreamPreferenceList) error {
+
+	resp, err := rc.R().Get(streamPrefsURL)
+	if err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(resp.Body(), streamPrefsList); err != nil {
+		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", streamPrefsList)
+	}
+
+	return nil
+}
+
+func setStreamPrefs(rc *resty.Client, params map[string]string) error {
+
+	_, err := rc.R().
+		SetQueryParams(params).
+		Post(streamPrefsSetURL)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func markAllAsRead(rc *resty.Client, params map[string]string) error {
+
+	_, err := rc.R().
+		SetQueryParams(params).
+		Post(baseURL + "/mark-all-as-read")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func printStreamContentsWithDate(n string, r string, xt string, it string, s string) error {
 

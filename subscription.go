@@ -96,6 +96,7 @@ func printSubList(onlyUnread bool) error {
 			titlesIDs[v.ID] = v.Title
 		}
 
+		var totalUnread int64
 		for _, v := range unreadCounts.Unreadcounts {
 
 			count, err := v.Count.Int64()
@@ -103,23 +104,24 @@ func printSubList(onlyUnread bool) error {
 				return errors.Wrapf(err, "Could not convert %T to Int64", v.Count)
 			}
 
+			if strings.Contains(v.ID, "state/com.google/reading-list") {
+				totalUnread = count
+			}
+
 			var (
-				titleString string
 				idPrefix    string = "state/com.google/"
 				labelPrefix string = "label/"
 			)
 
 			if count > 0 {
-				if strings.Contains(v.ID, idPrefix) || strings.Contains(v.ID, labelPrefix) {
-					label := strings.Split(v.ID, "/")
-					titleString = label[len(label)-1]
-				} else {
-					titleString = titlesIDs[v.ID]
+				if !strings.Contains(v.ID, idPrefix) && !strings.Contains(v.ID, labelPrefix) {
+					table.Append([]string{titlesIDs[v.ID], strconv.FormatInt(count, 10)})
 				}
-				table.SetHeader([]string{"Subscription", "# Unread"})
-				table.Append([]string{titleString, strconv.FormatInt(count, 10)})
 			}
 		}
+		table.SetHeader([]string{"Subscription", "# Unread"})
+		table.SetFooter([]string{"Total unread:", strconv.FormatInt(totalUnread, 10)})
+		table.SetFooterAlignment(tablewriter.ALIGN_RIGHT)
 	} else {
 		for _, v := range subList.Subscriptions {
 			table.SetHeader([]string{"Subscription", "URL"})

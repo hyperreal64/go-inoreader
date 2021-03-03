@@ -72,7 +72,6 @@ func (c *config) handleInoreaderCallback(w http.ResponseWriter, r *http.Request)
 
 	if r.FormValue("state") != oauthState.Value {
 		log.Println("Invalid OAuth state")
-		http.Redirect(w, r, "/go-inoreader", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -113,8 +112,7 @@ func oauth2RestyClient(ctx context.Context) *resty.Client {
 
 func serveTemplate(w http.ResponseWriter, r *http.Request) {
 
-	authTempl := authTemplate{"Done", "You may close this page now and return to go-inoreader in terminal."}
-
+	t := &authTemplate{"Done", "You may now close this page and return to go-inoreader in your terminal"}
 	fp := path.Join("templates", "index.html")
 	tmpl, err := template.ParseFiles(fp)
 	if err != nil {
@@ -122,7 +120,7 @@ func serveTemplate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := tmpl.Execute(w, authTempl); err != nil {
+	if err := tmpl.Execute(w, t); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

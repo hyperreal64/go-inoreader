@@ -23,10 +23,6 @@ type config struct {
 
 func loadConfig(filePath string) *config {
 
-	if filePath == "" {
-		filePath = getCfgFilePath()
-	}
-
 	// Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		log.Println("Config file does not exist:", filePath)
@@ -82,14 +78,12 @@ func (c *config) writeCfgFile(filePath string, oauth2Resp *oauth2.Token) {
 		Expiry:       oauth2Resp.Expiry,
 	}
 
-	jsonData, err := json.Marshal(&cfg)
+	jsonData, err := json.MarshalIndent(&cfg, "", "  ")
 	if err != nil {
 		log.Println("Unable to parse JSON data to write to config file")
 		log.Fatalln(err)
 	}
 
-	log.Println(string(jsonData))
-	log.Println(filePath)
 	if err := os.WriteFile(filePath, jsonData, 0644); err != nil {
 		log.Println("Unable to write JSON data to config file:", filePath)
 		log.Fatalln(err)

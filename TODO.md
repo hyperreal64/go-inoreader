@@ -9,9 +9,8 @@
     - [ ] Clean up and improve help messages
     - [ ] Set default values/display help message for subcommands used without arguments
 - [ ] Remove unneeded type definitions
-- [ ] Add configuration settings
+- [x] Add configuration settings
     - [x] OAuth2 flow
-    - [ ] Make HTML template conditional on success/failure of OAuth2 flow
     - [x] Save configuration info to `$XDG_DATA_HOME/go-inoreader.json` on Unix/Linux and `%APPDATA%\go-inoreader.json` on Windows
 - [x] Use [go-resty](https://github.com/go-resty/resty) for HTTP requests
 - [x] Use [tablewriter](https://github.com/olekukonko/tablewriter) for formatting output
@@ -42,10 +41,9 @@
     - [x] `printStreamContentsWithIDs()`        : Print stream contents with IDs
     - [x] `execMarkStreamAsRead()`              : Mark stream as read
 - [x] fns in `subscription.go`, `tags.go`, `stream.go` should return errors up the chain
-- [ ] Handle cancelled context from `authConfig.go`
 - [ ] `cmd.go`
     - [ ] Command examples
 - [x] Refactor `base.go`
 - [ ] Colors in output
-- [ ] Sum unread count for all unread items
+- [x] Print unread count for all unread items
 

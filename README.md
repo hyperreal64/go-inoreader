@@ -14,12 +14,31 @@ The general guidelines I use for coding this are:
 
 --Inanc Gumus [@inancgumus](https://twitter.com/inancgumus)
 
-To use this, you need to create a new application on Inoreader under Preferences > Developer. You will be give an App ID and App Secret for your new app. On Unix/Linux, set these values in the following environment variables:
-```bash
-export INO_APP_ID=<app id>
-export INO_APP_SEC=<app secret>
+To use this, you need to create a new application on Inoreader under Preferences > Developer. Set the redirect URI to `http://localhost:8081/oauth/redirect` and scope to `Read and write`. You will get an App ID and App Key which you need to save to the configuration file. On Unix/Linux, open `~/.local/share/go-inoreader.json`. On Windows, open `$HOME\AppData\Local\go-inoreader.json`. Add your App ID and App Key as JSON items to this file.
+```json
+{
+  "app_id": <your app id>,
+  "app_key": <your app key>
+}
 ```
 
-You may also save them to the shell's profile so that they are sourced on startup.
+Save and close the file. Clone this repo and build the binary:
+```bash
+git clone https://github.com/hyperreal64/go-inoreader
+cd go-inoreader
+go build .
+```
 
-For Windows, environment variables can be set by going to Explorer.exe > This PC > Right click and select Properties > Advanced system settings > Environment Variables. Create a new User environment variable for INO_APP_ID and INO_APP_SEC and set their values to App ID and App Secret.
+To see a list of commands:
+```bash
+./go-inoreader --help
+```
+
+To initiate the OAuth flow:
+```bash
+./go-inoreader login
+```
+
+Point your browser at [http://localhost:8081](http://localhost:8081) and click 'Authorize'.
+
+Requires Go 1.16+

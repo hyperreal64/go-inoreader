@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"strconv"
@@ -30,10 +31,9 @@ const (
 
 func printUserInfo() error {
 
-	rClient, err := config2Client()
-	if err != nil {
-		return errors.Wrap(err, getRestyErr)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
 
 	resp, err := rClient.R().Get(userInfoURL)
 	if err != nil {

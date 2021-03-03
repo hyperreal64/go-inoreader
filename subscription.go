@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"strconv"
@@ -72,10 +73,9 @@ func getUnreadCounters(rc *resty.Client) (*UnreadCounters, error) {
 
 func printSubList(onlyUnread bool) error {
 
-	rClient, err := config2Client()
-	if err != nil {
-		return errors.Wrap(err, getRestyErr)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
 
 	subList, err := getSubscriptionList(rClient)
 	if err != nil {
@@ -138,10 +138,9 @@ func execAddSub(url string) error {
 		"quickadd": streamID,
 	}
 
-	rClient, err := config2Client()
-	if err != nil {
-		return errors.Wrap(err, getRestyErr)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
 
 	quickAdd, err := quickAddSubscription(rClient, params)
 	if err != nil {
@@ -163,10 +162,9 @@ func execUnsubscribe(url string) error {
 		"s":  streamID,
 	}
 
-	rClient, err := config2Client()
-	if err != nil {
-		return errors.Wrap(err, getRestyErr)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
 
 	if err := editSubscription(rClient, params); err != nil {
 		return errors.Wrapf(err, "Could not unsubscribe from subscription %s", url)
@@ -184,10 +182,9 @@ func execSetSubTitle(title string, url string) error {
 		"t":  title,
 	}
 
-	rClient, err := config2Client()
-	if err != nil {
-		return errors.Wrap(err, getRestyErr)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
 
 	if err := editSubscription(rClient, params); err != nil {
 		return errors.Wrapf(err, "Could not set title %s on subscription %s", title, url)
@@ -205,10 +202,9 @@ func execAddSubToFolder(folder string, url string) error {
 		"a":  folder,
 	}
 
-	rClient, err := config2Client()
-	if err != nil {
-		return errors.Wrap(err, getRestyErr)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
 
 	if err := editSubscription(rClient, params); err != nil {
 		return errors.Wrapf(err, "Could not add subscription %s to folder %s", url, folder)
@@ -226,10 +222,9 @@ func execRemSubFromFolder(folder string, url string) error {
 		"r":  folder,
 	}
 
-	rClient, err := config2Client()
-	if err != nil {
-		return errors.Wrap(err, getRestyErr)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
 
 	if err := editSubscription(rClient, params); err != nil {
 		return errors.Wrapf(err, "Could not remove subscription %s from folder %s", url, folder)

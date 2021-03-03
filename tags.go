@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"strconv"
@@ -66,10 +67,9 @@ func editTag(rc *resty.Client, params map[string]string) error {
 
 func printTagsFolders(onlyUnread bool, option string) error {
 
-	rClient, err := config2Client()
-	if err != nil {
-		return errors.Wrap(err, getRestyErr)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
 
 	tagList, err := getTagList(rClient)
 	if err != nil {
@@ -135,10 +135,9 @@ func execEditTagRead(itemID string, markRead bool) error {
 		}
 	}
 
-	rClient, err := config2Client()
-	if err != nil {
-		return errors.Wrap(err, getRestyErr)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
 
 	if err := editTag(rClient, params); err != nil {
 		return errors.Wrapf(err, "Could not mark item %s as read", itemID)
@@ -161,10 +160,9 @@ func execEditTagStar(itemID string, star bool) error {
 		}
 	}
 
-	rClient, err := config2Client()
-	if err != nil {
-		return errors.Wrap(err, getRestyErr)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
 
 	if err := editTag(rClient, params); err != nil {
 		return errors.Wrapf(err, "Could not mark item %s as starred", itemID)
@@ -180,10 +178,9 @@ func execRenameTag(src string, dest string) error {
 		"dest": dest,
 	}
 
-	rClient, err := config2Client()
-	if err != nil {
-		return errors.Wrap(err, getRestyErr)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
 
 	if err := renameTag(rClient, params); err != nil {
 		return errors.Wrapf(err, "Could not rename tag %s to %s", src, dest)
@@ -196,10 +193,9 @@ func execDelTag(tagName string) error {
 
 	params := map[string]string{"s": tagName}
 
-	rClient, err := config2Client()
-	if err != nil {
-		return errors.Wrap(err, getRestyErr)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
 
 	if err := renameTag(rClient, params); err != nil {
 		return errors.Wrapf(err, "Could not delete tag %s", tagName)

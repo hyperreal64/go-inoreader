@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"strings"
@@ -68,10 +69,9 @@ func markAllAsRead(rc *resty.Client, params map[string]string) error {
 
 func printStreamContentsWithDate(n string, r string, xt string, it string, s string) error {
 
-	rClient, err := config2Client()
-	if err != nil {
-		return errors.Wrap(err, getRestyErr)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
 
 	params := map[string]string{
 		"n":  n,
@@ -99,10 +99,9 @@ func printStreamContentsWithDate(n string, r string, xt string, it string, s str
 
 func printStreamContentsWithURL(n string, r string, xt string, it string, s string) error {
 
-	rClient, err := config2Client()
-	if err != nil {
-		return errors.Wrap(err, getRestyErr)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
 
 	params := map[string]string{
 		"n":  n,
@@ -134,10 +133,9 @@ func printStreamContentsWithURL(n string, r string, xt string, it string, s stri
 
 func printStreamContentsWithIDs(n string, r string, xt string, it string, s string) error {
 
-	rClient, err := config2Client()
-	if err != nil {
-		return errors.Wrap(err, getRestyErr)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
 
 	params := map[string]string{
 		"n":  n,
@@ -170,10 +168,9 @@ func execMarkStreamAsRead(streamID string) error {
 		streamID = "feed/" + streamID
 	}
 
-	rClient, err := config2Client()
-	if err != nil {
-		return errors.Wrap(err, getRestyErr)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
 
 	params := map[string]string{
 		"s": streamID,

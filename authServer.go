@@ -106,8 +106,7 @@ func oauth2RestyClient(ctx context.Context) *resty.Client {
 	token.TokenType = c.TokenType
 	token.Expiry = c.Expiry
 
-	httpClient := c.OAuth2Conf.Client(ctx, token)
-	return resty.NewWithClient(httpClient)
+	return resty.NewWithClient(c.OAuth2Conf.Client(ctx, token))
 }
 
 func serveTemplate(w http.ResponseWriter, r *http.Request) {
@@ -139,15 +138,15 @@ func Init() {
 		defer cancel()
 	})
 
+	// TODO: This can be improved
 	srv := &http.Server{Addr: ":8081"}
+	log.Println("Server listening on http://localhost:8081")
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			log.Printf("Server error: %s", err.Error())
 		}
 	}()
 	<-ctx.Done()
-	if err := srv.Shutdown(ctx); err != nil && err != context.Canceled {
-		log.Println(err)
-	}
+
 	log.Println("Done")
 }

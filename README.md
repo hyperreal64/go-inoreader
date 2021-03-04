@@ -1,4 +1,5 @@
 # go-inoreader
+[![Go Report Card](https://goreportcard.com/badge/github.com/hyperreal64/go-inoreader)](https://goreportcard.com/report/github.com/hyperreal64/go-inoreader)
 
 WORK IN PROGRESS 🚧: An unofficial Inoreader API client for Go
 

@@ -122,7 +122,7 @@ func printTagsFolders(onlyUnread bool, option string) error {
 // TODO: Notify user when item cannot be marked unread due to `timestampUsec` being older than `firstitemsec` of its feed
 func execEditTagRead(itemID string, markRead bool) error {
 
-	params := make(map[string]string)
+	params := map[string]string{}
 	if markRead {
 		params = map[string]string{
 			"a": "user/-/state/com.google/read",
@@ -147,7 +147,7 @@ func execEditTagRead(itemID string, markRead bool) error {
 }
 
 func execEditTagStar(itemID string, star bool) error {
-	params := make(map[string]string)
+	params := map[string]string{}
 	if star {
 		params = map[string]string{
 			"a": "user/-/state/com.google/starred",

@@ -15,7 +15,7 @@ The general guidelines I use for coding this are:
 
 --Inanc Gumus [@inancgumus](https://twitter.com/inancgumus)
 
-To use this, you need to create a new application on Inoreader under Preferences > Developer. Set the redirect URI to `http://localhost:8081/oauth/redirect` and scope to `Read and write`. You will get an App ID and App Key which you need to save to the configuration file. On Unix/Linux, open `~/.local/share/go-inoreader.json`. On Windows, open `$HOME\AppData\Local\go-inoreader.json`. Add your App ID and App Key as JSON items to this file.
+To use this, you need to create a new application on Inoreader under Preferences > Developer. Set the redirect URI to `http://localhost:8081/oauth/redirect` and scope to `Read and write`. You will get an App ID and App Key which you need to save to the configuration file. On Unix/Linux, open `~/.local/share/go-inoreader.json`. On Windows, open `$env:APPDATA\go-inoreader.json`. Add your App ID and App Key as JSON items to this file.
 ```json
 {
   "app_id": <your app id>,

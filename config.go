@@ -100,7 +100,7 @@ func getCfgFilePath() string {
 
 	switch runtime.GOOS {
 	case "windows":
-		fileName = path.Join(homeDir, "/AppData/Local/go-inoreader.json")
+		fileName = path.Join(homeDir, "/AppData/Roaming/go-inoreader.json")
 
 	default:
 		fileName = path.Join(homeDir, "/.local/share/go-inoreader.json")

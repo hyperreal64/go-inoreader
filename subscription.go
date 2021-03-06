@@ -23,7 +23,7 @@ func quickAddSubscription(rc *resty.Client, params map[string]string) (*QuickAdd
 
 	quickAdd := &QuickAdd{}
 	if err := json.Unmarshal(resp.Body(), quickAdd); err != nil {
-		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", quickAdd)
+		return nil, errors.Wrapf(err, "Unable to unmarshal JSON object: %v", quickAdd)
 	}
 
 	return quickAdd, nil
@@ -50,7 +50,7 @@ func getSubscriptionList(rc *resty.Client) (*SubscriptionList, error) {
 
 	subList := &SubscriptionList{}
 	if err := json.Unmarshal(resp.Body(), &subList); err != nil {
-		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", subList)
+		return nil, errors.Wrapf(err, "Unable to unmarshal JSON object: %v", subList)
 	}
 
 	return subList, nil
@@ -65,7 +65,7 @@ func getUnreadCounters(rc *resty.Client) (*UnreadCounters, error) {
 
 	unreadCounters := &UnreadCounters{}
 	if err = json.Unmarshal(resp.Body(), &unreadCounters); err != nil {
-		return nil, errors.Wrapf(err, "Could not unmarshal JSON object %v", unreadCounters)
+		return nil, errors.Wrapf(err, "Unable to unmarshal JSON object %v", unreadCounters)
 	}
 
 	return unreadCounters, nil
@@ -79,21 +79,27 @@ func printSubList(onlyUnread bool) error {
 
 	subList, err := getSubscriptionList(rClient)
 	if err != nil {
-		return errors.Wrap(err, "Could not get subscription list")
+		return errors.Wrap(err, "Unable to get subscription list")
 	}
 
 	unreadCounts, err := getUnreadCounters(rClient)
 	if err != nil {
-		return errors.Wrap(err, "Could not get unread counters")
+		return errors.Wrap(err, "Unable to get unread counters")
 	}
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetColMinWidth(0, 40)
+	var (
+		tableData   [][]string
+		tableHeader []string
+		tableFooter []string
+		hasFooter   bool
+	)
 
-	if onlyUnread == true {
-		titlesIDs := make(map[string]string)
+	if onlyUnread {
+		idTitleMap := make(map[string]string)
+		idURLMap := make(map[string]string)
 		for _, v := range subList.Subscriptions {
-			titlesIDs[v.ID] = v.Title
+			idTitleMap[v.ID] = v.Title
+			idURLMap[v.ID] = v.URL
 		}
 
 		var totalUnread int64
@@ -101,7 +107,7 @@ func printSubList(onlyUnread bool) error {
 
 			count, err := v.Count.Int64()
 			if err != nil {
-				return errors.Wrapf(err, "Could not convert %T to Int64", v.Count)
+				return errors.Wrapf(err, "Unable to convert %T to Int64", v.Count)
 			}
 
 			if strings.Contains(v.ID, "state/com.google/reading-list") {
@@ -115,19 +121,31 @@ func printSubList(onlyUnread bool) error {
 
 			if count > 0 {
 				if !strings.Contains(v.ID, idPrefix) && !strings.Contains(v.ID, labelPrefix) {
-					table.Append([]string{titlesIDs[v.ID], strconv.FormatInt(count, 10)})
+					tableData = append(tableData, []string{idTitleMap[v.ID], idURLMap[v.ID], strconv.FormatInt(count, 10)})
 				}
 			}
 		}
-		table.SetHeader([]string{"Subscription", "# Unread"})
-		table.SetFooter([]string{"Total unread:", strconv.FormatInt(totalUnread, 10)})
-		table.SetFooterAlignment(tablewriter.ALIGN_RIGHT)
+
+		tableHeader = []string{"Subscription", "URL", "# Unread"}
+		hasFooter = true
+		tableFooter = []string{"", "Total unread:", strconv.FormatInt(totalUnread, 10)}
+
 	} else {
 		for _, v := range subList.Subscriptions {
-			table.SetHeader([]string{"Subscription", "URL"})
-			table.Append([]string{v.Title, v.URL})
+			tableData = append(tableData, []string{v.Title, v.URL})
 		}
+
+		tableHeader = []string{"Subscription", "URL"}
+		hasFooter = false
 	}
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader(tableHeader)
+	if hasFooter {
+		table.SetFooter(tableFooter)
+		table.SetFooterAlignment(tablewriter.ALIGN_RIGHT)
+	}
+	table.AppendBulk(tableData)
 	table.Render()
 
 	return nil
@@ -169,7 +187,7 @@ func execUnsubscribe(url string) error {
 	defer cancel()
 
 	if err := editSubscription(rClient, params); err != nil {
-		return errors.Wrapf(err, "Could not unsubscribe from subscription %s", url)
+		return errors.Wrapf(err, "Unable to unsubscribe from subscription %s", url)
 	}
 
 	return nil
@@ -189,7 +207,7 @@ func execSetSubTitle(title string, url string) error {
 	defer cancel()
 
 	if err := editSubscription(rClient, params); err != nil {
-		return errors.Wrapf(err, "Could not set title %s on subscription %s", title, url)
+		return errors.Wrapf(err, "Unable to set title %s on subscription %s", title, url)
 	}
 
 	return nil
@@ -209,7 +227,7 @@ func execAddSubToFolder(folder string, url string) error {
 	defer cancel()
 
 	if err := editSubscription(rClient, params); err != nil {
-		return errors.Wrapf(err, "Could not add subscription %s to folder %s", url, folder)
+		return errors.Wrapf(err, "Unable to add subscription %s to folder %s", url, folder)
 	}
 
 	return nil
@@ -229,7 +247,7 @@ func execRemSubFromFolder(folder string, url string) error {
 	defer cancel()
 
 	if err := editSubscription(rClient, params); err != nil {
-		return errors.Wrapf(err, "Could not remove subscription %s from folder %s", url, folder)
+		return errors.Wrapf(err, "Unable to remove subscription %s from folder %s", url, folder)
 	}
 
 	return nil

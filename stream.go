@@ -4,12 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
+)
+
+const (
+	starredTag = "user/-/state/com.google/starred"
+	savedTag   = "user/-/state/com.google/saved-web-pages"
 )
 
 func getStreamContents(rc *resty.Client, params map[string]string) (*StreamContents, error) {
@@ -103,12 +107,23 @@ func printStreamContentsWithURL(n string, r string, xt string, it string, s stri
 	rClient := oauth2RestyClient(ctx)
 	defer cancel()
 
+	var (
+		streamID    string
+		tableHeader []string
+		tableData   [][]string
+		url         string
+	)
+
+	if s == savedTag || s == starredTag {
+		streamID = s
+	}
+
 	params := map[string]string{
 		"n":  n,
 		"r":  r,
 		"xt": xt,
 		"it": it,
-		"s":  s,
+		"s":  streamID,
 	}
 
 	streamContents, err := getStreamContents(rClient, params)
@@ -116,16 +131,29 @@ func printStreamContentsWithURL(n string, r string, xt string, it string, s stri
 		return errors.Wrapf(err, "Could not get stream contents with parameters %v", params)
 	}
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Feed", "Title", "URL"})
+	if s == savedTag {
+		tableHeader = []string{"Title", "URL"}
 
-	var url string
-	for _, v := range streamContents.Items {
-		for _, w := range v.Canonical {
-			url = w.Href
+		for _, v := range streamContents.Items {
+			for _, w := range v.Canonical {
+				url = w.Href
+			}
+			tableData = append(tableData, []string{v.Title, url})
 		}
-		table.Append([]string{v.Origin.Title, v.Title, url})
+	} else {
+		tableHeader = []string{"Feed", "Title", "URL"}
+
+		for _, v := range streamContents.Items {
+			for _, w := range v.Canonical {
+				url = w.Href
+			}
+			tableData = append(tableData, []string{v.Origin.Title, v.Title, url})
+		}
 	}
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader(tableHeader)
+	table.AppendBulk(tableData)
 	table.Render()
 
 	return nil
@@ -137,12 +165,24 @@ func printStreamContentsWithIDs(n string, r string, xt string, it string, s stri
 	rClient := oauth2RestyClient(ctx)
 	defer cancel()
 
+	var (
+		streamID    string
+		tableHeader []string
+		tableData   [][]string
+	)
+
+	if s == savedTag || s == starredTag {
+		streamID = s
+	} else {
+		streamID = "feed/" + s
+	}
+
 	params := map[string]string{
 		"n":  n,
 		"r":  r,
 		"xt": xt,
 		"it": it,
-		"s":  s,
+		"s":  streamID,
 	}
 
 	streamContents, err := getStreamContents(rClient, params)
@@ -150,23 +190,32 @@ func printStreamContentsWithIDs(n string, r string, xt string, it string, s stri
 		return errors.Wrapf(err, "Could not get stream contents with parameters %v", params)
 	}
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Feed", "Title", "Item ID"})
-	table.SetColMinWidth(1, 50)
+	if s == savedTag {
+		tableHeader = []string{"Title", "Item ID"}
 
-	for _, v := range streamContents.Items {
-		table.Append([]string{v.Origin.Title, v.Title, v.ID})
+		for _, v := range streamContents.Items {
+			tableData = append(tableData, []string{v.Title, v.ID})
+		}
+
+	} else {
+		tableHeader = []string{"Feed", "Title", "Item ID"}
+
+		for _, v := range streamContents.Items {
+			tableData = append(tableData, []string{v.Origin.Title, v.Title, v.ID})
+		}
 	}
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader(tableHeader)
+	table.AppendBulk(tableData)
 	table.Render()
 
 	return nil
 }
 
-func execMarkStreamAsRead(streamID string) error {
+func execMarkStreamAsRead(streamURL string) error {
 
-	if strings.HasPrefix(streamID, "http") {
-		streamID = "feed/" + streamID
-	}
+	streamID := "feed/" + streamURL
 
 	ctx, cancel := context.WithCancel(context.Background())
 	rClient := oauth2RestyClient(ctx)

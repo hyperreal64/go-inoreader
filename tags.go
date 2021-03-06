@@ -146,9 +146,9 @@ func execEditTagRead(itemID string, markRead bool) error {
 	return nil
 }
 
-func execEditTagStar(itemID string, star bool) error {
+func execEditTagStar(itemID string, starred bool) error {
 	params := map[string]string{}
-	if star {
+	if starred {
 		params = map[string]string{
 			"a": "user/-/state/com.google/starred",
 			"i": itemID,
@@ -165,7 +165,33 @@ func execEditTagStar(itemID string, star bool) error {
 	defer cancel()
 
 	if err := editTag(rClient, params); err != nil {
-		return errors.Wrapf(err, "Could not mark item %s as starred", itemID)
+		return errors.Wrapf(err, "Could not mark item %s as %s", itemID, starred)
+	}
+
+	return nil
+}
+
+func execEditTagSaved(url string, saved bool) error {
+
+	params := map[string]string{}
+	if saved {
+		params = map[string]string{
+			"a": "user/-/state/com.google/saved-web-pages",
+			"i": url,
+		}
+	} else {
+		params = map[string]string{
+			"r": "user/-/state/com.google/saved-web-pages",
+			"i": url,
+		}
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	rClient := oauth2RestyClient(ctx)
+	defer cancel()
+
+	if err := editTag(rClient, params); err != nil {
+		return errors.Wrapf(err, "Could not mark item %s as %s", url, saved)
 	}
 
 	return nil

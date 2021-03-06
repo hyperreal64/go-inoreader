@@ -28,36 +28,33 @@ func (l *LoginCmd) Run(ctx *kong.Context) error {
 	return nil
 }
 
-// AddCmd ---
-type AddCmd struct {
-	URL string `arg:"" required,help:"URL of subscription feed"`
-}
-
-// Run (*AddCmd) ---
-func (a *AddCmd) Run(ctx *kong.Context) error {
-
-	if err := execAddSub(a.URL); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // SubscriptionCmd ---
 type SubscriptionCmd struct {
-	List ListSubsCmd `cmd:"" aliases:"ls" help:"List subscriptions"`
-
-	Unsubscribe UnsubscribeCmd `cmd:"" aliases:"un" help:"Unsubscribe from <url>"`
-
-	SetTitle SetTitleCmd `cmd:"" aliases:"st" help:"Change the title of a subscription"`
-
-	AddToFolder AddToFolderCmd `cmd:"" aliases:"af" help:"Add subscription to folder"`
-
+	Add           AddSubCmd        `cmd:"" help:"Add a subscription"`
+	List          ListSubsCmd      `cmd:"" aliases:"ls" help:"List subscriptions"`
+	Unsubscribe   UnsubscribeCmd   `cmd:"" aliases:"un" help:"Unsubscribe from <url>"`
+	SetTitle      SetTitleCmd      `cmd:"" aliases:"st" help:"Change the title of a subscription"`
+	AddToFolder   AddToFolderCmd   `cmd:"" aliases:"af" help:"Add subscription to folder"`
 	RemFromFolder RemFromFolderCmd `cmd:"" aliases:"rf" help:"Remove subscription from folder"`
 }
 
 // Run (*SubscriptionCmd) ---
 func (s *SubscriptionCmd) Run(ctx *kong.Context) error {
+
+	return nil
+}
+
+// AddSubCmd ---
+type AddSubCmd struct {
+	URL string `arg:"" required,help:"URL of subscription feed"`
+}
+
+// Run (*AddSubCmd) ---
+func (a *AddSubCmd) Run(ctx *kong.Context) error {
+
+	if err := execAddSub(a.URL); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -81,6 +78,10 @@ func (l *ListSubsCmd) Run(ctx *kong.Context) error {
 		if err := printSubList(true); err != nil {
 			return err
 		}
+	}
+
+	if !l.All && !l.Unread {
+		ctx.PrintUsage(true)
 	}
 
 	return nil
@@ -151,10 +152,8 @@ func (r *RemFromFolderCmd) Run(ctx *kong.Context) error {
 
 // TagsCmd ---
 type TagsCmd struct {
-	List ListTagsCmd `cmd:"" aliases:"ls" help:"List tags and/or folders"`
-
+	List      ListTagsCmd  `cmd:"" aliases:"ls" help:"List tags and/or folders"`
 	RenameTag RenameTagCmd `cmd:"" aliases:"mv" help:"Rename a tag"`
-
 	DeleteTag DeleteTagCmd `cmd:"" aliases:"rm" help:"Delete a tag"`
 }
 
@@ -184,6 +183,10 @@ func (t *ListTagsCmd) Run(ctx *kong.Context) error {
 		if err := printTagsFolders(true, t.Type); err != nil {
 			return err
 		}
+	}
+
+	if !t.All && !t.Unread {
+		ctx.PrintUsage(true)
 	}
 
 	return nil
@@ -220,17 +223,17 @@ func (d *DeleteTagCmd) Run(ctx *kong.Context) error {
 	return nil
 }
 
-// MarkItemCmd ---
-type MarkItemCmd struct {
-	Read   bool   `arg,short:"r" xor:"read" help:"Mark <itemID> as read"`
-	Unread bool   `arg,xor:"read" help:"Mark <itemID> as unread"`
-	Star   bool   `arg,short:"s" xor:"star" help:"Star or unstar <itemID>"`
-	Unstar bool   `arg,xor:"star" help:"Unstar <itemID>"`
+// MarkItemReadCmd ---
+type MarkItemReadCmd struct {
+	Read   bool   `arg,xor:"read" help:"Mark item as read"`
+	Unread bool   `arg,xor:"read" help:"Mark item as unread"`
+	Star   bool   `arg,xor:"starred" help:"Add article to Starred"`
+	Unstar bool   `arg,xor:"starred" help:"Remove article from Starred"`
 	ItemID string `arg,required,help:"Item ID"`
 }
 
 // Run (*MarkItemCmd) ---
-func (m *MarkItemCmd) Run(ctx *kong.Context) error {
+func (m *MarkItemReadCmd) Run(ctx *kong.Context) error {
 
 	if m.Read {
 		if err := execEditTagRead(m.ItemID, true); err != nil {
@@ -256,18 +259,22 @@ func (m *MarkItemCmd) Run(ctx *kong.Context) error {
 		}
 	}
 
+	if !m.Read && !m.Unread && !m.Star && !m.Unstar {
+		ctx.PrintUsage(true)
+	}
+
 	return nil
 }
 
 // StreamCmd ---
 type StreamCmd struct {
-	Num           string `arg,optional,short:"n" default:"5" help:"Specify number of items returned"`
-	Order         string `arg,optional,enum:"n,o" short:"r" default:"n" help:"Specify order of items returned, i.e. newest or oldest"`
-	ExcludeTarget string `arg,optional,short:"x" help:"Specify stream ID of target to exclude"`
-	IncludeTarget string `arg,optional,short:"i" help:"Specify stream ID of target to include"`
-	StreamID      string `arg,required,short:"s" help:"Specify stream ID of feed"`
-	URLS          bool   `arg,optional,default:"false" xor:"stream" help:"Display items with their URLs"`
-	IDS           bool   `arg,optional,default:"false" xor:"stream" help:"Display items with their IDs"`
+	Num           string `arg,optional,name:"num" short:"n" help:"Specify number of items returned"`
+	Order         string `arg,optional,name:"order" short:"r" help:"Specify order of items returned, i.e. newest or oldest"`
+	ExcludeTarget string `arg,optional,help:"Specify stream ID of target to exclude"`
+	IncludeTarget string `arg,optional,help:"Specify stream ID of target to include"`
+	StreamID      string `arg,required,name:"stream-id" short:"s" help:"Specify stream ID of feed"`
+	URLS          bool   `arg,optional,name:"urls" short:"u" default:"false" xor:"stream" help:"Display items with their URLs"`
+	IDS           bool   `arg,optional,name:"ids" short:"i" default:"false" xor:"stream" help:"Display items with their IDs"`
 }
 
 // Run (*StreamCmd) ---
@@ -289,13 +296,100 @@ func (sc *StreamCmd) Run(ctx *kong.Context) error {
 	return nil
 }
 
-// ReadCmd ---
-type ReadCmd struct {
+// StarredCmd ---
+type StarredCmd struct {
+	List ListStarredCmd `cmd:"" aliases:"ls" help:"List starred articles"`
+}
+
+// Run (*StarredCmd) ---
+func (s *StarredCmd) Run(ctx *kong.Context) error {
+
+	return nil
+}
+
+// ListStarredCmd ---
+type ListStarredCmd struct {
+	Num           string `arg,optional,name:"num" short:"n" help:"Specify number of items returned"`
+	Order         string `arg,optional,name:"order" short:"r" help:"Specify order of items returned, i.e. newest or oldest"`
+	ExcludeTarget string `arg,optional,help:"Specify stream ID of target to exclude"`
+	IncludeTarget string `arg,optional,help:"Specify stream ID of target to include"`
+	URLS          bool   `arg,optional,name:"urls" short:"u" xor:"stream" help:"Display items with their URLs"`
+	IDS           bool   `arg,optional,name:"ids" short:"i" xor:"stream" help:"Display items with their IDs"`
+}
+
+// Run (*ListStarredCmd) ---
+func (s *ListStarredCmd) Run(ctx *kong.Context) error {
+
+	if s.URLS {
+		err := printStreamContentsWithURL(s.Num, s.Order, s.ExcludeTarget, s.IncludeTarget, "user/-/state/com.google/starred")
+		if err != nil {
+			return err
+		}
+	}
+
+	if s.IDS {
+		err := printStreamContentsWithIDs(s.Num, s.Order, s.ExcludeTarget, s.IncludeTarget, "user/-/state/com.google/starred")
+		if err != nil {
+			return err
+		}
+	}
+
+	if !s.IDS && !s.URLS {
+		err := printStreamContentsWithDate(s.Num, s.Order, s.ExcludeTarget, s.IncludeTarget, "user/-/state/com.google/starred")
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// WebPagesCmd ---
+type WebPagesCmd struct {
+	List ListWebPagesCmd `cmd:"" aliases:"ls" help:"List saved web pages"`
+}
+
+// ListWebPagesCmd ---
+type ListWebPagesCmd struct {
+	Num           string `arg,optional,name:"num" short:"n" help:"Specify number of items returned"`
+	Order         string `arg,optional,name:"order" short:"r" help:"Specify order of items returned, i.e. newest or oldest"`
+	ExcludeTarget string `arg,optional,help:"Specify stream ID of target to exclude"`
+	IncludeTarget string `arg,optional,help:"Specify stream ID of target to include"`
+	StreamID      string `arg,required,name:"stream-id" short:"s" help:"Specify stream ID of feed"`
+	URLS          bool   `arg,optional,name:"urls" short:"u" xor:"stream" help:"Display items with their URLs"`
+	IDS           bool   `arg,optional,name:"ids" short:"i" xor:"stream" help:"Display items with their IDs"`
+}
+
+// Run (*ListWebPagesCmd) ---
+func (w *ListWebPagesCmd) Run(ctx *kong.Context) error {
+
+	if w.URLS {
+		err := printStreamContentsWithURL(w.Num, w.Order, w.ExcludeTarget, w.IncludeTarget, "user/-/state/com.google/saved-web-pages")
+		if err != nil {
+			return err
+		}
+	} else if w.IDS {
+		err := printStreamContentsWithIDs(w.Num, w.Order, w.ExcludeTarget, w.IncludeTarget, "user/-/state/com.google/saved-web-pages")
+		if err != nil {
+			return err
+		}
+	} else {
+		err := printStreamContentsWithDate(w.Num, w.Order, w.ExcludeTarget, w.IncludeTarget, "user/-/state/com.google/saved-web-pages")
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// MarkStreamReadCmd ---
+type MarkStreamReadCmd struct {
 	StreamID string `arg,required,short:"s" help:"Enter stream ID or feed URL to mark as read"`
 }
 
-// Run (*ReadCmd) ---
-func (r *ReadCmd) Run(ctx *kong.Context) error {
+// Run (*MarkStreamReadCmd) ---
+func (r *MarkStreamReadCmd) Run(ctx *kong.Context) error {
 
 	if err := execMarkStreamAsRead(r.StreamID); err != nil {
 		return err
@@ -309,17 +403,19 @@ var cli struct {
 
 	Login LoginCmd `cmd:"" help:"Login and initiate Oauth flow"`
 
-	Add AddCmd `cmd:"" help:"Add a subscription"`
-
 	Subscription SubscriptionCmd `cmd:"" aliases:"sub" help:"Query subscriptions"`
 
 	Tags TagsCmd `cmd:"" help:"Query tags and folders"`
 
-	MarkItem MarkItemCmd `cmd:"" aliases:"mark" help:"Mark items as read/unread or starred/unstarred"`
+	MarkItemRead MarkItemReadCmd `cmd:"" aliases:"mark" help:"Mark items as read/unread or starred/unstarred"`
 
 	Stream StreamCmd `cmd:"" help:"Query stream contents"`
 
-	Read ReadCmd `cmd:"" help:"Mark all items in stream as read"`
+	MarkStreamRead MarkStreamReadCmd `cmd:"" help:"Mark all items in stream as read"`
+
+	Starred StarredCmd `cmd:"" help:"Query starred articles"`
+
+	WebPages WebPagesCmd `cmd:"" aliases:"wp" help:"Query saved web pages"`
 }
 
 func main() {

@@ -40,10 +40,16 @@
     - [x] `printStreamContentsWithURL()`        : Print stream contents with URL
     - [x] `printStreamContentsWithIDs()`        : Print stream contents with IDs
     - [x] `execMarkStreamAsRead()`              : Mark stream as read
+    - [ ] `printSavedWebPagesWithURL()`         : Print saved web pages with URL
+    - [ ] `printSavedWebPagesWithIDs()`         : Print saved web pages with IDs
+    - [ ] `execAddSavedWebPage()`               : Add saved web page
+    - [ ] `execRemSavedWebPage()`               : Remove saved web page
 - [x] fns in `subscription.go`, `tags.go`, `stream.go` should return errors up the chain
 - [ ] `cmd.go`
     - [ ] Command examples
 - [x] Refactor `base.go`
 - [ ] Colors in output
 - [x] Print unread count for all unread items
+- [ ] Get and set saved web pages
+- [ ] Add better comments
 

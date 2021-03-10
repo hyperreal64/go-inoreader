@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -23,8 +24,6 @@ const (
 	itemIDsURL        = baseURL + "/stream/items/ids"
 	streamPrefsURL    = baseURL + "/preference/stream/list"
 	streamPrefsSetURL = baseURL + "/preference/stream/set"
-
-	getRestyErr string = "Could not get resty client"
 
 	timeFormLong string = "Mon 2 Jan 2006 3:04 PM"
 )
@@ -60,4 +59,35 @@ func printUserInfo() error {
 	table.Render()
 
 	return nil
+}
+
+func printCmdExamples() {
+
+	data := [][]string{
+		{"List all subscriptions", "go-inoreader list subscriptions -a"},
+		{"List only unread subscriptions", "go-inoreader list subscriptions -u"},
+		{"List all tags and folders", "go-inoreader list tags -a"},
+		{"List only tags and folders with unread items", "go-inoreader list tags -u"},
+		{"List only folders", "go-inoreader list tags --type=folders -a"},
+		{"List only folders with unread items", "go-inoreader list tags --type=folders -u"},
+		{"List the 5 newest items in stream with their URLs", "go-inoreader list stream <feed URL> -n 5 -r n -u"},
+		{"List the 10 oldest items in stream with their Inoreader item IDs", "go-inoreader list stream <feed URL> -n 10 -r o -i"},
+		{"List the 3 most recently starred items with their timestamps", "go-inoreader list starred -n 3 -r n -d"},
+		{"List all web pages saved to Inoreader with their URLs", "go-inoreader list web-pages -u"},
+		{"Mark an item as read", "go-inoreader mark-item --read --item-id=\"000000067ca9449f\""},
+		{"Star an item", "go-inoreader mark-item --star --item-id=\"000000067ca9449f\""},
+		{"Mark all items in feed as read", "go-inoreader mark-stream-read <feed URL>"},
+		{"Add a subscription to Inoreader", "go-inoreader subscription add <feed URL>"},
+		{"Unsubscribe from subscription", "go-inoreader subscription unsubscribe <feed URL>"},
+		{"Change title of subscription to 'Linux News'", "go-inoreader subscription set-title --url=<feed URL> --title=\"Linux News\""},
+		{"Add 'Fedora Magazine' subscription to the 'FOSS' folder", "go-inoreader subscription add-to-folder --folder=\"FOSS\" --url=\"https://fedoramagazine.org/feed/\""},
+		{"Rename a user-defined tag from 'linux' to 'foss'", "go-inoreader tags --src=\"linux\" --dest=\"foss\""},
+		{"Print user information", "go-inoreader user-info"},
+		{"Login and authorize Inoreader account access", "go-inoreader login"},
+	}
+
+	for _, v := range data {
+		fmt.Printf("%s:\n", v[0])
+		fmt.Printf("%s\n\n", v[1])
+	}
 }

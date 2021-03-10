@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 	"strconv"
 	"strings"
@@ -20,7 +19,7 @@ func getTagList(rc *resty.Client) (*TagFolderList, error) {
 	}
 
 	tagList := &TagFolderList{}
-	if err := json.Unmarshal(resp.Body(), tagList); err != nil {
+	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), tagList); err != nil {
 		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", tagList)
 	}
 

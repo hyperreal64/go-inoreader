@@ -1,8 +1,5 @@
-# TODO
+# Checklist
 
-- [ ] Implement an option for an interactive terminal user interface. See https://github.com/avelino/awesome-go#advanced-console-uis
-    - [ ] May require using an actual database
-    - [ ] Keep terminal UI code separate and abstract enough to work in a plugin sort of way
 - [x] Add base API methods
 - [ ] `cmd/go-inoreader/main.go`
     - [x] Use [kong](https://github.com/alecthomas/kong) package to handle command-line args
@@ -12,6 +9,7 @@
 - [x] Add configuration settings
     - [x] OAuth2 flow
     - [x] Save configuration info to `$XDG_DATA_HOME/go-inoreader.json` on Unix/Linux and `%APPDATA%\go-inoreader.json` on Windows
+    - [ ] Handle expiry error
 - [x] Use [go-resty](https://github.com/go-resty/resty) for HTTP requests
 - [x] Use [tablewriter](https://github.com/olekukonko/tablewriter) for formatting output
 - [ ] Support various output formats for streams/items: JSON, CSV
@@ -40,16 +38,15 @@
     - [x] `printStreamContentsWithURL()`        : Print stream contents with URL
     - [x] `printStreamContentsWithIDs()`        : Print stream contents with IDs
     - [x] `execMarkStreamAsRead()`              : Mark stream as read
-    - [ ] `printSavedWebPagesWithURL()`         : Print saved web pages with URL
-    - [ ] `printSavedWebPagesWithIDs()`         : Print saved web pages with IDs
-    - [ ] `execAddSavedWebPage()`               : Add saved web page
-    - [ ] `execRemSavedWebPage()`               : Remove saved web page
+    - [x] `printSavedWebPagesWithURL()`         : Print saved web pages with URL
+    - [x] `printSavedWebPagesWithIDs()`         : Print saved web pages with IDs
 - [x] fns in `subscription.go`, `tags.go`, `stream.go` should return errors up the chain
 - [ ] `cmd.go`
     - [ ] Command examples
 - [x] Refactor `base.go`
 - [ ] Colors in output
 - [x] Print unread count for all unread items
-- [ ] Get and set saved web pages
 - [ ] Add better comments
+- [ ] Error handling: check for HTTP status and handle appropriately
+- [ ] Implement unit testing!
 

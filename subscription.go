@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 	"strconv"
 	"strings"
@@ -22,7 +21,7 @@ func quickAddSubscription(rc *resty.Client, params map[string]string) (*QuickAdd
 	}
 
 	quickAdd := &QuickAdd{}
-	if err := json.Unmarshal(resp.Body(), quickAdd); err != nil {
+	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), &quickAdd); err != nil {
 		return nil, errors.Wrapf(err, "Unable to unmarshal JSON object: %v", quickAdd)
 	}
 
@@ -49,7 +48,7 @@ func getSubscriptionList(rc *resty.Client) (*SubscriptionList, error) {
 	}
 
 	subList := &SubscriptionList{}
-	if err := json.Unmarshal(resp.Body(), &subList); err != nil {
+	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), &subList); err != nil {
 		return nil, errors.Wrapf(err, "Unable to unmarshal JSON object: %v", subList)
 	}
 
@@ -64,7 +63,7 @@ func getUnreadCounters(rc *resty.Client) (*UnreadCounters, error) {
 	}
 
 	unreadCounters := &UnreadCounters{}
-	if err = json.Unmarshal(resp.Body(), &unreadCounters); err != nil {
+	if err = resty.Unmarshalc(rc, "application/json", resp.Body(), &unreadCounters); err != nil {
 		return nil, errors.Wrapf(err, "Unable to unmarshal JSON object %v", unreadCounters)
 	}
 

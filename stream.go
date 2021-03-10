@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 	"time"
 
@@ -21,13 +20,14 @@ func getStreamContents(rc *resty.Client, params map[string]string) (*StreamConte
 	resp, err := rc.R().
 		SetQueryParams(params).
 		Get(streamContentsURL)
+
 	if err != nil {
 		return nil, err
 	}
 
 	streamContents := &StreamContents{}
-	if err := json.Unmarshal(resp.Body(), streamContents); err != nil {
-		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", streamContents)
+	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), streamContents); err != nil {
+		return nil, err
 	}
 
 	return streamContents, nil
@@ -40,7 +40,7 @@ func getStreamPrefsList(rc *resty.Client, streamPrefsList *StreamPreferenceList)
 		return err
 	}
 
-	if err := json.Unmarshal(resp.Body(), streamPrefsList); err != nil {
+	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), streamPrefsList); err != nil {
 		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", streamPrefsList)
 	}
 
@@ -77,12 +77,23 @@ func printStreamContentsWithDate(n string, r string, xt string, it string, s str
 	rClient := oauth2RestyClient(ctx)
 	defer cancel()
 
+	var (
+		streamID  string
+		tableData [][]string
+	)
+
+	if s == savedTag || s == starredTag {
+		streamID = s
+	} else {
+		streamID = "feed/" + s
+	}
+
 	params := map[string]string{
 		"n":  n,
 		"r":  r,
 		"xt": xt,
 		"it": it,
-		"s":  s,
+		"s":  streamID,
 	}
 
 	streamContents, err := getStreamContents(rClient, params)
@@ -90,12 +101,13 @@ func printStreamContentsWithDate(n string, r string, xt string, it string, s str
 		return errors.Wrapf(err, "Could not get stream contents with parameters: %v", params)
 	}
 
+	for _, v := range streamContents.Items {
+		tableData = append(tableData, []string{v.Origin.Title, v.Title, time.Unix(v.Published, 0).Format(timeFormLong)})
+	}
+
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Feed", "Title", "Date"})
-
-	for _, v := range streamContents.Items {
-		table.Append([]string{v.Origin.Title, v.Title, time.Unix(v.Published, 0).Format(timeFormLong)})
-	}
+	table.AppendBulk(tableData)
 	table.Render()
 
 	return nil
@@ -116,6 +128,8 @@ func printStreamContentsWithURL(n string, r string, xt string, it string, s stri
 
 	if s == savedTag || s == starredTag {
 		streamID = s
+	} else {
+		streamID = "feed/" + s
 	}
 
 	params := map[string]string{

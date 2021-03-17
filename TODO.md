@@ -16,8 +16,8 @@
 - [ ] Support formatting stream/item metadata and output for markdown
 - [ ] Support downloading OPML for subscriptions list
 - [x] Starring/unstarring items
-- [ ] Mark items as read/unread
-    - [ ] Notify user when item cannot be marked unread due to `timestampUsec` being older than the `firstitemsec` of its feed
+- [x] Mark items as read/unread
+    - [x] Notify user when item cannot be marked unread due to `timestampUsec` being older than the `firstitemsec` of its feed
 - [x] Mark all items in stream as read
 - [x] `subscription.go`
     - [x] `printSubList()`          : Print subscriptions list
@@ -41,8 +41,8 @@
     - [x] `printSavedWebPagesWithURL()`         : Print saved web pages with URL
     - [x] `printSavedWebPagesWithIDs()`         : Print saved web pages with IDs
 - [x] fns in `subscription.go`, `tags.go`, `stream.go` should return errors up the chain
-- [ ] `cmd.go`
-    - [ ] Command examples
+- [x] `cmd.go`
+    - [x] Command examples
 - [x] Refactor `base.go`
 - [ ] Colors in output
 - [x] Print unread count for all unread items

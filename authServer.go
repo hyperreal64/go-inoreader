@@ -4,11 +4,9 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
-	"path"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -23,9 +21,22 @@ type authTemplate struct {
 var scopes = []string{"read", "write"}
 
 const (
-	redirectURL string = "http://localhost:8081/oauth/redirect"
-	authURL     string = "https://www.inoreader.com/oauth2/auth?"
-	tokenURL    string = "https://www.inoreader.com/oauth2/token"
+	redirectURL          string = "http://localhost:8081/oauth/redirect"
+	authURL              string = "https://www.inoreader.com/oauth2/auth?"
+	tokenURL             string = "https://www.inoreader.com/oauth2/token"
+	authResponseTemplate        = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Done</title>
+</head>
+<body>
+<h1>{{ .Title }}</h1>
+<hr>
+{{ .Message }}
+</body>
+</html>
+`
 )
 
 func generateOauthStateCookie(w http.ResponseWriter) string {
@@ -75,25 +86,17 @@ func (c *config) handleInoreaderCallback(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	token, err := c.exchangeToken(r.FormValue("code"))
+	token, err := c.OAuth2Conf.Exchange(context.Background(), r.FormValue("code"))
 	if err != nil {
 		log.Println(err.Error())
-		http.Redirect(w, r, "/go-inoreader", http.StatusTemporaryRedirect)
 	}
 
-	c.writeCfgFile(getCfgFilePath(), token)
+	if err := c.writeCfgFile(getCfgFilePath(), token); err != nil {
+		log.Println(err)
+		return
+	}
 
 	http.Redirect(w, r, "/go-inoreader", http.StatusTemporaryRedirect)
-}
-
-func (c *config) exchangeToken(code string) (*oauth2.Token, error) {
-
-	token, err := c.OAuth2Conf.Exchange(context.Background(), code)
-	if err != nil {
-		return nil, fmt.Errorf("Code exchange was wrong: %s", err.Error())
-	}
-
-	return token, nil
 }
 
 func oauth2RestyClient(ctx context.Context) *resty.Client {
@@ -111,15 +114,9 @@ func oauth2RestyClient(ctx context.Context) *resty.Client {
 
 func serveTemplate(w http.ResponseWriter, r *http.Request) {
 
-	t := &authTemplate{"Done", "You may now close this page and return to go-inoreader in your terminal"}
-	fp := path.Join("templates", "index.html")
-	tmpl, err := template.ParseFiles(fp)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if err := tmpl.Execute(w, t); err != nil {
+	templateMsg := &authTemplate{Title: "Done", Message: "You may close this page and return to go-inoreader in your terminal."}
+	var t = template.Must(template.New("authResponse").Parse(authResponseTemplate))
+	if err := t.Execute(w, templateMsg); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )
 
@@ -67,7 +68,7 @@ func validateConfig(c *config) {
 	}
 }
 
-func (c *config) writeCfgFile(filePath string, oauth2Resp *oauth2.Token) {
+func (c *config) writeCfgFile(filePath string, oauth2Resp *oauth2.Token) error {
 
 	cfg := &config{
 		AppID:        c.AppID,
@@ -80,14 +81,14 @@ func (c *config) writeCfgFile(filePath string, oauth2Resp *oauth2.Token) {
 
 	jsonData, err := json.MarshalIndent(&cfg, "", "  ")
 	if err != nil {
-		log.Println("Unable to parse JSON data to write to config file")
-		log.Fatalln(err)
+		return errors.Wrapf(err, "Unable to parse JSON data", cfg)
 	}
 
 	if err := os.WriteFile(filePath, jsonData, 0644); err != nil {
-		log.Println("Unable to write JSON data to config file:", filePath)
-		log.Fatalln(err)
+		return errors.Wrapf(err, "Unable to write JSON data to config file:", filePath)
 	}
+
+	return nil
 }
 
 // Get the path of the configuration file

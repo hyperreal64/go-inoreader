@@ -23,23 +23,21 @@ To use this, you need to create a new application on Inoreader under Preferences
 }
 ```
 
-Save and close the file. Clone this repo and build the binary:
+Install using Go's builtin package manager:
 ```bash
-git clone https://github.com/hyperreal64/go-inoreader
-cd go-inoreader
-go build .
+go get -v github.com/hyperreal64/go-inoreader
 ```
 
 To see a list of commands:
 ```bash
-./go-inoreader --help
+go-inoreader --help
 ```
 
 To initiate the OAuth flow:
 ```bash
-./go-inoreader login
+go-inoreader login
 ```
 
 Point your browser at [http://localhost:8081](http://localhost:8081) and click 'Authorize'.
 
-Requires Go 1.16+
+Requires Go 1.15+

@@ -38,19 +38,19 @@ func renameTag(rc *resty.Client, params map[string]string) error {
 	return nil
 }
 
-func deleteTag(rc *resty.Client, tagName string) error {
+// func deleteTag(rc *resty.Client, tagName string) error {
 
-	_, err := rc.R().
-		SetQueryParams(map[string]string{
-			"s": tagName,
-		}).
-		Post(baseURL + "/disable-tag")
-	if err != nil {
-		return err
-	}
+// 	_, err := rc.R().
+// 		SetQueryParams(map[string]string{
+// 			"s": tagName,
+// 		}).
+// 		Post(baseURL + "/disable-tag")
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func editTag(rc *resty.Client, params map[string]string) error {
 
@@ -81,7 +81,7 @@ func printTagsFolders(onlyUnread bool, option string) error {
 	switch option {
 	case "tags":
 		for _, v := range tagList.Tags {
-			if onlyUnread == true {
+			if onlyUnread {
 				if v.Type == "tag" && v.UnreadCount > 0 {
 					label := strings.Split(v.ID, "/")
 					labelSuffix := label[len(label)-1]
@@ -98,7 +98,7 @@ func printTagsFolders(onlyUnread bool, option string) error {
 
 	case "folders":
 		for _, v := range tagList.Tags {
-			if onlyUnread == true {
+			if onlyUnread {
 				if v.Type == "folder" && v.UnreadCount > 0 {
 					label := strings.Split(v.ID, "/")
 					labelSuffix := label[len(label)-1]
@@ -121,7 +121,7 @@ func printTagsFolders(onlyUnread bool, option string) error {
 // TODO: Notify user when item cannot be marked unread due to `timestampUsec` being older than `firstitemsec` of its feed
 func execEditTagRead(itemID string, markRead bool) error {
 
-	params := map[string]string{}
+	var params = map[string]string{}
 	if markRead {
 		params = map[string]string{
 			"a": "user/-/state/com.google/read",
@@ -146,7 +146,7 @@ func execEditTagRead(itemID string, markRead bool) error {
 }
 
 func execEditTagStar(itemID string, starred bool) error {
-	params := map[string]string{}
+	var params = map[string]string{}
 	if starred {
 		params = map[string]string{
 			"a": "user/-/state/com.google/starred",
@@ -170,31 +170,31 @@ func execEditTagStar(itemID string, starred bool) error {
 	return nil
 }
 
-func execEditTagSaved(url string, saved bool) error {
+// func execEditTagSaved(url string, saved bool) error {
 
-	params := map[string]string{}
-	if saved {
-		params = map[string]string{
-			"a": "user/-/state/com.google/saved-web-pages",
-			"i": url,
-		}
-	} else {
-		params = map[string]string{
-			"r": "user/-/state/com.google/saved-web-pages",
-			"i": url,
-		}
-	}
+// 	var params = map[string]string{}
+// 	if saved {
+// 		params = map[string]string{
+// 			"a": "user/-/state/com.google/saved-web-pages",
+// 			"i": url,
+// 		}
+// 	} else {
+// 		params = map[string]string{
+// 			"r": "user/-/state/com.google/saved-web-pages",
+// 			"i": url,
+// 		}
+// 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	rClient := oauth2RestyClient(ctx)
-	defer cancel()
+// 	ctx, cancel := context.WithCancel(context.Background())
+// 	rClient := oauth2RestyClient(ctx)
+// 	defer cancel()
 
-	if err := editTag(rClient, params); err != nil {
-		return errors.Wrapf(err, "Could not mark item %s as %s", url, saved)
-	}
+// 	if err := editTag(rClient, params); err != nil {
+// 		return errors.Wrapf(err, "Could not mark item %s as %s", url, saved)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func execRenameTag(src string, dest string) error {
 

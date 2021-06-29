@@ -66,7 +66,9 @@ func (s *SubListCmd) Run(ctx *kong.Context) error {
 		}
 
 	default:
-		ctx.PrintUsage(true)
+		if err := ctx.PrintUsage(true); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -94,7 +96,9 @@ func (t *TagListCmd) Run(ctx *kong.Context) error {
 		}
 
 	default:
-		ctx.PrintUsage(true)
+		if err := ctx.PrintUsage(true); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -132,7 +136,9 @@ func (s *StreamListCmd) Run(ctx *kong.Context) error {
 		}
 
 	default:
-		ctx.PrintUsage(true)
+		if err := ctx.PrintUsage(true); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -172,7 +178,9 @@ func (s *StarredListCmd) Run(ctx *kong.Context) error {
 		}
 
 	default:
-		ctx.PrintUsage(true)
+		if err := ctx.PrintUsage(true); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -212,7 +220,9 @@ func (w *WebPagesListCmd) Run(ctx *kong.Context) error {
 		}
 
 	default:
-		ctx.PrintUsage(true)
+		if err := ctx.PrintUsage(true); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -412,7 +422,9 @@ func (m *MarkItemCmd) Run(ctx *kong.Context) error {
 		fmt.Printf("Unstarred %s\n", m.ItemID)
 
 	default:
-		ctx.PrintUsage(true)
+		if err := ctx.PrintUsage(true); err != nil {
+			return err
+		}
 	}
 
 	return nil

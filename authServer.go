@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -39,17 +40,21 @@ const (
 `
 )
 
-func generateOauthStateCookie(w http.ResponseWriter) string {
+func generateOauthStateCookie(w http.ResponseWriter) (string, error) {
 
 	var expiration = time.Now().Add(20 * time.Minute)
 
 	b := make([]byte, 16)
-	rand.Read(b)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+
 	state := base64.URLEncoding.EncodeToString(b)
 	cookie := http.Cookie{Name: "oauthstate", Value: state, Expires: expiration}
 	http.SetCookie(w, &cookie)
 
-	return state
+	return state, nil
 }
 
 func (c *config) getOauthConf() {
@@ -71,7 +76,12 @@ func (c *config) getOauthConf() {
 // HandleInoreaderLogin ---
 func (c *config) handleInoreaderLogin(w http.ResponseWriter, r *http.Request) {
 
-	oauthState := generateOauthStateCookie(w)
+	oauthState, err := generateOauthStateCookie(w)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return
+	}
+
 	url := c.OAuth2Conf.AuthCodeURL(oauthState)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }

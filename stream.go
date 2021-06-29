@@ -33,32 +33,6 @@ func getStreamContents(rc *resty.Client, params map[string]string) (*StreamConte
 	return streamContents, nil
 }
 
-func getStreamPrefsList(rc *resty.Client, streamPrefsList *StreamPreferenceList) error {
-
-	resp, err := rc.R().Get(streamPrefsURL)
-	if err != nil {
-		return err
-	}
-
-	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), streamPrefsList); err != nil {
-		return errors.Wrapf(err, "Could not unmarshal JSON object: %v", streamPrefsList)
-	}
-
-	return nil
-}
-
-func setStreamPrefs(rc *resty.Client, params map[string]string) error {
-
-	_, err := rc.R().
-		SetQueryParams(params).
-		Post(streamPrefsSetURL)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func markAllAsRead(rc *resty.Client, params map[string]string) error {
 
 	_, err := rc.R().

@@ -84,7 +84,7 @@ func (c *config) writeCfgFile(filePath string, oauth2Resp *oauth2.Token) error {
 		return errors.Wrapf(err, "Unable to parse JSON data", cfg)
 	}
 
-	if err := os.WriteFile(filePath, jsonData, 0644); err != nil {
+	if err := os.WriteFile(filePath, jsonData, 0600); err != nil {
 		return errors.Wrapf(err, "Unable to write JSON data to config file:", filePath)
 	}
 

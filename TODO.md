@@ -10,7 +10,8 @@
     - [x] OAuth2 flow
     - [x] Save configuration info to `$XDG_DATA_HOME/go-inoreader.json` on Unix/Linux and `%APPDATA%\go-inoreader.json` on Windows
     - [ ] Handle expiry error
-- [x] Use [go-resty](https://github.com/go-resty/resty) for HTTP requests
+- ~~[x] Use [go-resty](https://github.com/go-resty/resty) for HTTP requests~~
+- [ ] Use the HTTP package from Go's standard library for REST API requests. It's a best practice to use native Go unless otherwise necessary.
 - [x] Use [tablewriter](https://github.com/olekukonko/tablewriter) for formatting output
 - [ ] Support various output formats for streams/items: JSON, CSV
 - [ ] Support formatting stream/item metadata and output for markdown

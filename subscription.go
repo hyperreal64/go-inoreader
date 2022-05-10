@@ -2,16 +2,52 @@ package main
 
 import (
 	"context"
-	"os"
-	"strconv"
-	"strings"
+	"encoding/json"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 )
 
-func quickAddSubscription(rc *resty.Client, params map[string]string) (*QuickAdd, error) {
+// QuickAdd response
+type QuickAdd struct {
+	Query      string `json:"query"`
+	NumResults int    `json:"numResults"`
+	StreamID   string `json:"streamId"`
+	StreamName string `json:"streamName"`
+}
+
+// UnreadCounters response
+type UnreadCounters struct {
+	Max          int `json:"max"`
+	Unreadcounts []struct {
+		ID                      string      `json:"id"`
+		Count                   json.Number `json:"count"`
+		NewestItemTimestampUsec string      `json:"newestItemTimestampUsec"`
+	} `json:"unreadcounts"`
+}
+
+// SubscriptionList response
+type SubscriptionList struct {
+	Subscriptions []struct {
+		ID            string        `json:"id"`
+		FeedType      string        `json:"feedType"`
+		Title         string        `json:"title"`
+		Categories    []interface{} `json:"categories"`
+		Sortid        string        `json:"sortid"`
+		Firstitemmsec int64         `json:"firstitemmsec"`
+		URL           string        `json:"url"`
+		HTMLURL       string        `json:"htmlUrl"`
+		IconURL       string        `json:"iconUrl"`
+	} `json:"subscriptions"`
+}
+
+// QuickAddSubscription --- Quick add a subscription as specified in query parameters.
+// Unlike other POST requests to the Inoreader API server, this one returns a JSON response.
+// Parameters:
+// rc --> resty.Client
+// params --> query parameters that contain the subscription's URL
+// Returns: QuickAdd as JSON object, or error
+func QuickAddSubscription(rc *resty.Client, params map[string]string) (quickadd *QuickAdd, err error) {
 
 	resp, err := rc.R().
 		SetQueryParams(params).
@@ -20,15 +56,19 @@ func quickAddSubscription(rc *resty.Client, params map[string]string) (*QuickAdd
 		return nil, err
 	}
 
-	quickAdd := &QuickAdd{}
-	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), &quickAdd); err != nil {
-		return nil, errors.Wrapf(err, "Unable to unmarshal JSON object: %v", quickAdd)
+	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), &quickadd); err != nil {
+		return nil, errors.Wrapf(err, "Unable to unmarshal JSON object: %v", quickadd)
 	}
 
-	return quickAdd, nil
+	return quickadd, nil
 }
 
-func editSubscription(rc *resty.Client, params map[string]string) error {
+// EditSubscription -- Edit subscription specified in query parameters.
+// Parameters:
+// rc --> resty.Client
+// params --> query parameters that contain subscription URL and an action to take
+// Returns: error on error
+func EditSubscription(rc *resty.Client, params map[string]string) error {
 
 	_, err := rc.R().
 		SetQueryParams(params).
@@ -40,117 +80,38 @@ func editSubscription(rc *resty.Client, params map[string]string) error {
 	return nil
 }
 
-func getSubscriptionList(rc *resty.Client) (*SubscriptionList, error) {
+// GetSubscriptionList -- Get list of subscriptions.
+func GetSubscriptionList(rc *resty.Client) (sublist *SubscriptionList, err error) {
 
 	resp, err := rc.R().Get(subListURL)
 	if err != nil {
 		return nil, err
 	}
 
-	subList := &SubscriptionList{}
-	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), &subList); err != nil {
-		return nil, errors.Wrapf(err, "Unable to unmarshal JSON object: %v", subList)
+	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), &sublist); err != nil {
+		return nil, errors.Wrapf(err, "Unable to unmarshal JSON object: %v", sublist)
 	}
 
-	return subList, nil
+	return sublist, nil
 }
 
-func getUnreadCounters(rc *resty.Client) (*UnreadCounters, error) {
+// GetUnreadCounters -- Get the number of unread items for subscriptions.
+func GetUnreadCounters(rc *resty.Client) (uc *UnreadCounters, err error) {
 
 	resp, err := rc.R().Get(unreadCountersURL)
 	if err != nil {
 		return nil, err
 	}
 
-	unreadCounters := &UnreadCounters{}
-	if err = resty.Unmarshalc(rc, "application/json", resp.Body(), &unreadCounters); err != nil {
-		return nil, errors.Wrapf(err, "Unable to unmarshal JSON object %v", unreadCounters)
+	if err = resty.Unmarshalc(rc, "application/json", resp.Body(), &uc); err != nil {
+		return nil, errors.Wrapf(err, "Unable to unmarshal JSON object %v", uc)
 	}
 
-	return unreadCounters, nil
+	return uc, nil
 }
 
-func printSubList(onlyUnread bool) error {
-
-	ctx, cancel := context.WithCancel(context.Background())
-	rClient := oauth2RestyClient(ctx)
-	defer cancel()
-
-	subList, err := getSubscriptionList(rClient)
-	if err != nil {
-		return errors.Wrap(err, "Unable to get subscription list")
-	}
-
-	unreadCounts, err := getUnreadCounters(rClient)
-	if err != nil {
-		return errors.Wrap(err, "Unable to get unread counters")
-	}
-
-	var (
-		tableData   [][]string
-		tableHeader []string
-		tableFooter []string
-		hasFooter   bool
-	)
-
-	if onlyUnread {
-		idTitleMap := make(map[string]string)
-		idURLMap := make(map[string]string)
-		for _, v := range subList.Subscriptions {
-			idTitleMap[v.ID] = v.Title
-			idURLMap[v.ID] = v.URL
-		}
-
-		var totalUnread int64
-		for _, v := range unreadCounts.Unreadcounts {
-
-			count, err := v.Count.Int64()
-			if err != nil {
-				return errors.Wrapf(err, "Unable to convert %T to Int64", v.Count)
-			}
-
-			if strings.Contains(v.ID, "state/com.google/reading-list") {
-				totalUnread = count
-			}
-
-			var (
-				idPrefix    string = "state/com.google/"
-				labelPrefix string = "label/"
-			)
-
-			if count > 0 {
-				if !strings.Contains(v.ID, idPrefix) && !strings.Contains(v.ID, labelPrefix) {
-					tableData = append(tableData, []string{idTitleMap[v.ID], idURLMap[v.ID], strconv.FormatInt(count, 10)})
-				}
-			}
-		}
-
-		tableHeader = []string{"Subscription", "URL", "# Unread"}
-		hasFooter = true
-		tableFooter = []string{"", "Total unread:", strconv.FormatInt(totalUnread, 10)}
-
-	} else {
-		for _, v := range subList.Subscriptions {
-			tableData = append(tableData, []string{v.Title, v.URL})
-		}
-
-		tableHeader = []string{"Subscription", "URL"}
-		hasFooter = false
-	}
-
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader(tableHeader)
-	if hasFooter {
-		table.SetFooter(tableFooter)
-		table.SetFooterAlignment(tablewriter.ALIGN_RIGHT)
-	}
-	table.AppendBulk(tableData)
-	table.Render()
-
-	return nil
-}
-
-func execAddSub(url string) error {
+// ExecAddSub -- Execute quick add subscription
+func ExecAddSub(url string) error {
 
 	streamID := "feed/" + url
 	params := map[string]string{
@@ -158,10 +119,10 @@ func execAddSub(url string) error {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	rClient := oauth2RestyClient(ctx)
+	rc := oauth2RestyClient(ctx)
 	defer cancel()
 
-	quickAdd, err := quickAddSubscription(rClient, params)
+	quickAdd, err := QuickAddSubscription(rc, params)
 	if err != nil {
 		return err
 	}
@@ -173,7 +134,8 @@ func execAddSub(url string) error {
 	return nil
 }
 
-func execUnsubscribe(url string) error {
+// ExecUnsubscribe -- Execute unsubscribe for subscription at URL
+func ExecUnsubscribe(url string) error {
 
 	streamID := "feed/" + url
 	params := map[string]string{
@@ -182,17 +144,18 @@ func execUnsubscribe(url string) error {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	rClient := oauth2RestyClient(ctx)
+	rc := oauth2RestyClient(ctx)
 	defer cancel()
 
-	if err := editSubscription(rClient, params); err != nil {
+	if err := EditSubscription(rc, params); err != nil {
 		return errors.Wrapf(err, "Unable to unsubscribe from subscription %s", url)
 	}
 
 	return nil
 }
 
-func execSetSubTitle(title string, url string) error {
+// ExecSetSubTitle -- Execute EditSubcription to set the subscription's title
+func ExecSetSubTitle(title string, url string) error {
 
 	streamID := "feed/" + url
 	params := map[string]string{
@@ -202,17 +165,18 @@ func execSetSubTitle(title string, url string) error {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	rClient := oauth2RestyClient(ctx)
+	rc := oauth2RestyClient(ctx)
 	defer cancel()
 
-	if err := editSubscription(rClient, params); err != nil {
+	if err := EditSubscription(rc, params); err != nil {
 		return errors.Wrapf(err, "Unable to set title %s on subscription %s", title, url)
 	}
 
 	return nil
 }
 
-func execAddSubToFolder(folder string, url string) error {
+// ExecAddSubToFolder -- Execute EditSubscription to add a subscription to specified folder
+func ExecAddSubToFolder(folder string, url string) error {
 
 	streamID := "feed/" + url
 	params := map[string]string{
@@ -222,17 +186,18 @@ func execAddSubToFolder(folder string, url string) error {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	rClient := oauth2RestyClient(ctx)
+	rc := oauth2RestyClient(ctx)
 	defer cancel()
 
-	if err := editSubscription(rClient, params); err != nil {
+	if err := EditSubscription(rc, params); err != nil {
 		return errors.Wrapf(err, "Unable to add subscription %s to folder %s", url, folder)
 	}
 
 	return nil
 }
 
-func execRemSubFromFolder(folder string, url string) error {
+// ExecRemSubFromFolder --- Execute EditSubscription to remove subscription from folder
+func ExecRemSubFromFolder(folder string, url string) error {
 
 	streamID := "feed/" + url
 	params := map[string]string{
@@ -242,10 +207,10 @@ func execRemSubFromFolder(folder string, url string) error {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	rClient := oauth2RestyClient(ctx)
+	rc := oauth2RestyClient(ctx)
 	defer cancel()
 
-	if err := editSubscription(rClient, params); err != nil {
+	if err := EditSubscription(rc, params); err != nil {
 		return errors.Wrapf(err, "Unable to remove subscription %s from folder %s", url, folder)
 	}
 

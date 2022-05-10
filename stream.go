@@ -2,20 +2,90 @@ package main
 
 import (
 	"context"
-	"os"
-	"time"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 )
 
-const (
-	starredTag = "user/-/state/com.google/starred"
-	savedTag   = "user/-/state/com.google/saved-web-pages"
-)
+// const (
+// 	starredTag = "user/-/state/com.google/starred"
+// 	savedTag   = "user/-/state/com.google/saved-web-pages"
+// )
 
-func getStreamContents(rc *resty.Client, params map[string]string) (*StreamContents, error) {
+// StreamContents response
+type StreamContents struct {
+	Direction   string `json:"direction"`
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Updated     int    `json:"updated"`
+	UpdatedUsec string `json:"updatedUsec"`
+	Self        struct {
+		Href string `json:"href"`
+	} `json:"self"`
+	Items        []Item `json:"items"`
+	Continuation string `json:"continuation"`
+}
+
+// Item response
+type Item struct {
+	CrawlTimeMsec string   `json:"crawlTimeMsec"`
+	TimestampUsec string   `json:"timestampUsec"`
+	ID            string   `json:"id"`
+	Categories    []string `json:"categories"`
+	Title         string   `json:"title"`
+	Published     int64    `json:"published"`
+	Updated       int      `json:"updated"`
+	Canonical     []struct {
+		Href string `json:"href"`
+	} `json:"canonical"`
+	Author      string        `json:"author"`
+	LikingUsers []interface{} `json:"likingUsers"`
+	Comments    []interface{} `json:"comments"`
+	CommentsNum int           `json:"commentsNum"`
+	Annotations []interface{} `json:"annotations"`
+	Origin      *Origin       `json:"origin"`
+}
+
+// Origin response
+type Origin struct {
+	StreamID string `json:"streamId"`
+	Title    string `json:"title"`
+	HTMLURL  string `json:"htmlUrl"`
+}
+
+// ItemIDs response
+type ItemIDs struct {
+	Items        []interface{} `json:"items"`
+	ItemRefs     []interface{} `json:"itemRefs"`
+	Continuation string        `json:"continuation"`
+}
+
+// ItemRefs response
+type ItemRefs struct {
+	ID              string        `json:"id"`
+	DirectStreamIds []interface{} `json:"directStreamIds"`
+	TimestampUsec   string        `json:"timestampUsec"`
+}
+
+// StreamPreferenceList response
+type StreamPreferenceList struct {
+	Streamprefs interface{} `json:"streamprefs"`
+}
+
+// Streamprefs response
+type Streamprefs struct {
+	UserStateComGoogleRoot []interface{} `json:"user/-/state/com.google/root"`
+}
+
+// UserStateComGoogleRoot response
+type UserStateComGoogleRoot struct {
+	ID    string `json:"id"`
+	Value string `json:"value"`
+}
+
+// GetStreamContents -- Gets stream contents based on set query parameters
+func GetStreamContents(rc *resty.Client, params map[string]string) (sc *StreamContents, err error) {
 
 	resp, err := rc.R().
 		SetQueryParams(params).
@@ -25,15 +95,15 @@ func getStreamContents(rc *resty.Client, params map[string]string) (*StreamConte
 		return nil, err
 	}
 
-	streamContents := &StreamContents{}
-	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), streamContents); err != nil {
+	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), sc); err != nil {
 		return nil, err
 	}
 
-	return streamContents, nil
+	return sc, nil
 }
 
-func markAllAsRead(rc *resty.Client, params map[string]string) error {
+// MarkAllAsRead -- Marks all items in stream as read; stream is specified in query parameters
+func MarkAllAsRead(rc *resty.Client, params map[string]string) error {
 
 	_, err := rc.R().
 		SetQueryParams(params).
@@ -45,163 +115,8 @@ func markAllAsRead(rc *resty.Client, params map[string]string) error {
 	return nil
 }
 
-func printStreamContentsWithDate(n string, r string, xt string, it string, s string) error {
-
-	ctx, cancel := context.WithCancel(context.Background())
-	rClient := oauth2RestyClient(ctx)
-	defer cancel()
-
-	var (
-		streamID  string
-		tableData [][]string
-	)
-
-	if s == savedTag || s == starredTag {
-		streamID = s
-	} else {
-		streamID = "feed/" + s
-	}
-
-	params := map[string]string{
-		"n":  n,
-		"r":  r,
-		"xt": xt,
-		"it": it,
-		"s":  streamID,
-	}
-
-	streamContents, err := getStreamContents(rClient, params)
-	if err != nil {
-		return errors.Wrapf(err, "Could not get stream contents with parameters: %v", params)
-	}
-
-	for _, v := range streamContents.Items {
-		tableData = append(tableData, []string{v.Origin.Title, v.Title, time.Unix(v.Published, 0).Format(timeFormLong)})
-	}
-
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Feed", "Title", "Date"})
-	table.AppendBulk(tableData)
-	table.Render()
-
-	return nil
-}
-
-func printStreamContentsWithURL(n string, r string, xt string, it string, s string) error {
-
-	ctx, cancel := context.WithCancel(context.Background())
-	rClient := oauth2RestyClient(ctx)
-	defer cancel()
-
-	var (
-		streamID    string
-		tableHeader []string
-		tableData   [][]string
-		url         string
-	)
-
-	if s == savedTag || s == starredTag {
-		streamID = s
-	} else {
-		streamID = "feed/" + s
-	}
-
-	params := map[string]string{
-		"n":  n,
-		"r":  r,
-		"xt": xt,
-		"it": it,
-		"s":  streamID,
-	}
-
-	streamContents, err := getStreamContents(rClient, params)
-	if err != nil {
-		return errors.Wrapf(err, "Could not get stream contents with parameters %v", params)
-	}
-
-	if s == savedTag {
-		tableHeader = []string{"Title", "URL"}
-
-		for _, v := range streamContents.Items {
-			for _, w := range v.Canonical {
-				url = w.Href
-			}
-			tableData = append(tableData, []string{v.Title, url})
-		}
-	} else {
-		tableHeader = []string{"Feed", "Title", "URL"}
-
-		for _, v := range streamContents.Items {
-			for _, w := range v.Canonical {
-				url = w.Href
-			}
-			tableData = append(tableData, []string{v.Origin.Title, v.Title, url})
-		}
-	}
-
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader(tableHeader)
-	table.AppendBulk(tableData)
-	table.Render()
-
-	return nil
-}
-
-func printStreamContentsWithIDs(n string, r string, xt string, it string, s string) error {
-
-	ctx, cancel := context.WithCancel(context.Background())
-	rClient := oauth2RestyClient(ctx)
-	defer cancel()
-
-	var (
-		streamID    string
-		tableHeader []string
-		tableData   [][]string
-	)
-
-	if s == savedTag || s == starredTag {
-		streamID = s
-	} else {
-		streamID = "feed/" + s
-	}
-
-	params := map[string]string{
-		"n":  n,
-		"r":  r,
-		"xt": xt,
-		"it": it,
-		"s":  streamID,
-	}
-
-	streamContents, err := getStreamContents(rClient, params)
-	if err != nil {
-		return errors.Wrapf(err, "Could not get stream contents with parameters %v", params)
-	}
-
-	if s == savedTag {
-		tableHeader = []string{"Title", "Item ID"}
-
-		for _, v := range streamContents.Items {
-			tableData = append(tableData, []string{v.Title, v.ID})
-		}
-
-	} else {
-		tableHeader = []string{"Feed", "Title", "Item ID"}
-
-		for _, v := range streamContents.Items {
-			tableData = append(tableData, []string{v.Origin.Title, v.Title, v.ID})
-		}
-	}
-
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader(tableHeader)
-	table.AppendBulk(tableData)
-	table.Render()
-
-	return nil
-}
-
-func execMarkStreamAsRead(streamURL string) error {
+// ExecMarkStreamRead -- Execute MarkAllAsRead for provided stream URL
+func ExecMarkStreamAsRead(streamURL string) error {
 
 	streamID := "feed/" + streamURL
 
@@ -213,7 +128,7 @@ func execMarkStreamAsRead(streamURL string) error {
 		"s": streamID,
 	}
 
-	if err := markAllAsRead(rClient, params); err != nil {
+	if err := MarkAllAsRead(rClient, params); err != nil {
 		return errors.Wrapf(err, "Could not mark stream as read: %s", streamID)
 	}
 

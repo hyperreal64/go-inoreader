@@ -2,31 +2,38 @@ package main
 
 import (
 	"context"
-	"os"
-	"strconv"
-	"strings"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 )
 
-func getTagList(rc *resty.Client) (*TagFolderList, error) {
+// TagFolderList response
+type TagFolderList struct {
+	Tags []struct {
+		ID          string `json:"id"`
+		Sortid      string `json:"sortid"`
+		UnreadCount int64  `json:"unread_count"`
+		Type        string `json:"type"`
+	} `json:"tags"`
+}
+
+// GetTagList --- Get list of tags
+func GetTagList(rc *resty.Client) (tfl *TagFolderList, err error) {
 
 	resp, err := rc.R().Get(tagListURL)
 	if err != nil {
 		return nil, err
 	}
 
-	tagList := &TagFolderList{}
-	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), tagList); err != nil {
-		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", tagList)
+	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), tfl); err != nil {
+		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", tfl)
 	}
 
-	return tagList, nil
+	return tfl, nil
 }
 
-func renameTag(rc *resty.Client, params map[string]string) error {
+// RenameTag --- Rename tag specified in query parameters
+func RenameTag(rc *resty.Client, params map[string]string) error {
 
 	_, err := rc.R().
 		SetQueryParams(params).
@@ -38,7 +45,7 @@ func renameTag(rc *resty.Client, params map[string]string) error {
 	return nil
 }
 
-// func deleteTag(rc *resty.Client, tagName string) error {
+// func DeleteTag(rc *resty.Client, tagName string) error {
 
 // 	_, err := rc.R().
 // 		SetQueryParams(map[string]string{
@@ -49,10 +56,11 @@ func renameTag(rc *resty.Client, params map[string]string) error {
 // 		return err
 // 	}
 
-// 	return nil
+// 	return
 // }
 
-func editTag(rc *resty.Client, params map[string]string) error {
+// EditTag -- Edit tag specified in query parameters
+func EditTag(rc *resty.Client, params map[string]string) error {
 
 	_, err := rc.R().
 		SetQueryParams(params).
@@ -64,62 +72,9 @@ func editTag(rc *resty.Client, params map[string]string) error {
 	return nil
 }
 
-func printTagsFolders(onlyUnread bool, option string) error {
-
-	ctx, cancel := context.WithCancel(context.Background())
-	rClient := oauth2RestyClient(ctx)
-	defer cancel()
-
-	tagList, err := getTagList(rClient)
-	if err != nil {
-		return errors.Wrap(err, "Could not get tags list")
-	}
-
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{option, "# unread"})
-
-	switch option {
-	case "tags":
-		for _, v := range tagList.Tags {
-			if onlyUnread {
-				if v.Type == "tag" && v.UnreadCount > 0 {
-					label := strings.Split(v.ID, "/")
-					labelSuffix := label[len(label)-1]
-					table.Append([]string{labelSuffix, strconv.FormatInt(v.UnreadCount, 10)})
-				}
-			} else {
-				if v.Type == "tag" {
-					label := strings.Split(v.ID, "/")
-					labelSuffix := label[len(label)-1]
-					table.Append([]string{labelSuffix, strconv.FormatInt(v.UnreadCount, 10)})
-				}
-			}
-		}
-
-	case "folders":
-		for _, v := range tagList.Tags {
-			if onlyUnread {
-				if v.Type == "folder" && v.UnreadCount > 0 {
-					label := strings.Split(v.ID, "/")
-					labelSuffix := label[len(label)-1]
-					table.Append([]string{labelSuffix, strconv.FormatInt(v.UnreadCount, 10)})
-				}
-			} else {
-				if v.Type == "folder" {
-					label := strings.Split(v.ID, "/")
-					labelSuffix := label[len(label)-1]
-					table.Append([]string{labelSuffix, strconv.FormatInt(v.UnreadCount, 10)})
-				}
-			}
-		}
-	}
-	table.Render()
-
-	return nil
-}
-
 // TODO: Notify user when item cannot be marked unread due to `timestampUsec` being older than `firstitemsec` of its feed
-func execEditTagRead(itemID string, markRead bool) error {
+// ExecEditTagRead -- Execute EditTag to mark the item as read (a) or unread (r)
+func ExecEditTagRead(itemID string, markRead bool) error {
 
 	var params = map[string]string{}
 	if markRead {
@@ -138,14 +93,15 @@ func execEditTagRead(itemID string, markRead bool) error {
 	rClient := oauth2RestyClient(ctx)
 	defer cancel()
 
-	if err := editTag(rClient, params); err != nil {
+	if err := EditTag(rClient, params); err != nil {
 		return errors.Wrapf(err, "Could not mark item %s as read", itemID)
 	}
 
 	return nil
 }
 
-func execEditTagStar(itemID string, starred bool) error {
+// ExecEditTagStar --- Execute EditTag to star (a) or unstar (r) an item
+func ExecEditTagStar(itemID string, starred bool) error {
 	var params = map[string]string{}
 	if starred {
 		params = map[string]string{
@@ -163,14 +119,14 @@ func execEditTagStar(itemID string, starred bool) error {
 	rClient := oauth2RestyClient(ctx)
 	defer cancel()
 
-	if err := editTag(rClient, params); err != nil {
+	if err := EditTag(rClient, params); err != nil {
 		return errors.Wrapf(err, "Could not mark item %s as %s", itemID, starred)
 	}
 
 	return nil
 }
 
-// func execEditTagSaved(url string, saved bool) error {
+// func EditTagSaved(url string, saved bool) error {
 
 // 	var params = map[string]string{}
 // 	if saved {
@@ -189,14 +145,15 @@ func execEditTagStar(itemID string, starred bool) error {
 // 	rClient := oauth2RestyClient(ctx)
 // 	defer cancel()
 
-// 	if err := editTag(rClient, params); err != nil {
+// 	if err := EditTag(rClient, params); err != nil {
 // 		return errors.Wrapf(err, "Could not mark item %s as %s", url, saved)
 // 	}
 
-// 	return nil
+// 	return
 // }
 
-func execRenameTag(src string, dest string) error {
+// ExecRenameTag --- Execute EditTag to rename a tag from src to dest
+func ExecRenameTag(src string, dest string) error {
 
 	params := map[string]string{
 		"s":    src,
@@ -207,14 +164,15 @@ func execRenameTag(src string, dest string) error {
 	rClient := oauth2RestyClient(ctx)
 	defer cancel()
 
-	if err := renameTag(rClient, params); err != nil {
+	if err := RenameTag(rClient, params); err != nil {
 		return errors.Wrapf(err, "Could not rename tag %s to %s", src, dest)
 	}
 
 	return nil
 }
 
-func execDelTag(tagName string) error {
+// ExecDelTag --- Execute EditTag to delete a tag
+func ExecDelTag(tagName string) error {
 
 	params := map[string]string{"s": tagName}
 
@@ -222,7 +180,7 @@ func execDelTag(tagName string) error {
 	rClient := oauth2RestyClient(ctx)
 	defer cancel()
 
-	if err := renameTag(rClient, params); err != nil {
+	if err := RenameTag(rClient, params); err != nil {
 		return errors.Wrapf(err, "Could not delete tag %s", tagName)
 	}
 

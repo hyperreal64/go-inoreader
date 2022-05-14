@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"context"
@@ -98,7 +98,7 @@ func (c *config) handleInoreaderCallback(w http.ResponseWriter, r *http.Request)
 
 	token, err := c.OAuth2Conf.Exchange(context.Background(), r.FormValue("code"))
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 	}
 
 	if err := c.writeCfgFile(getCfgFilePath(), token); err != nil {
@@ -109,9 +109,12 @@ func (c *config) handleInoreaderCallback(w http.ResponseWriter, r *http.Request)
 	http.Redirect(w, r, "/go-inoreader", http.StatusTemporaryRedirect)
 }
 
-func oauth2RestyClient(ctx context.Context) *resty.Client {
+func Oauth2RestyClient(ctx context.Context) *resty.Client {
 
-	c := loadConfig(getCfgFilePath())
+	c, err := loadConfig(getCfgFilePath())
+	if err != nil {
+		log.Println(err)
+	}
 
 	token := new(oauth2.Token)
 	token.AccessToken = c.AccessToken
@@ -135,7 +138,10 @@ func serveTemplate(w http.ResponseWriter, r *http.Request) {
 func Init() {
 
 	ctx, cancel := context.WithCancel(context.Background())
-	config := loadConfig(getCfgFilePath())
+	config, err := loadConfig(getCfgFilePath())
+	if err != nil {
+		log.Fatalln(err)
+	}
 	config.getOauthConf()
 
 	http.HandleFunc("/", config.handleInoreaderLogin)

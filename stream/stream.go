@@ -1,16 +1,20 @@
-package main
+package stream
 
 import (
-	"context"
-
 	"github.com/go-resty/resty/v2"
-	"github.com/pkg/errors"
 )
 
 // const (
 // 	starredTag = "user/-/state/com.google/starred"
 // 	savedTag   = "user/-/state/com.google/saved-web-pages"
 // )
+const (
+	streamContentsURL = "https://www.inoreader.com/reader/api/0/stream/contents"
+	itemIDsURL        = "https://www.inoreader.com/reader/api/0/stream/items/ids"
+	streamPrefsURL    = "https://www.inoreader.com/reader/api/0/preference/stream/list"
+	streamPrefsSetURL = "https://www.inoreader.com/reader/api/0/preference/stream/set"
+	markAllReadURL    = "https://www.inoreader.com/reader/api/0/mark-all-as-read"
+)
 
 // StreamContents response
 type StreamContents struct {
@@ -95,7 +99,7 @@ func GetStreamContents(rc *resty.Client, params map[string]string) (sc *StreamCo
 		return nil, err
 	}
 
-	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), sc); err != nil {
+	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), &sc); err != nil {
 		return nil, err
 	}
 
@@ -107,29 +111,9 @@ func MarkAllAsRead(rc *resty.Client, params map[string]string) error {
 
 	_, err := rc.R().
 		SetQueryParams(params).
-		Post(baseURL + "/mark-all-as-read")
+		Post(markAllReadURL)
 	if err != nil {
 		return err
-	}
-
-	return nil
-}
-
-// ExecMarkStreamRead -- Execute MarkAllAsRead for provided stream URL
-func ExecMarkStreamAsRead(streamURL string) error {
-
-	streamID := "feed/" + streamURL
-
-	ctx, cancel := context.WithCancel(context.Background())
-	rClient := oauth2RestyClient(ctx)
-	defer cancel()
-
-	params := map[string]string{
-		"s": streamID,
-	}
-
-	if err := MarkAllAsRead(rClient, params); err != nil {
-		return errors.Wrapf(err, "Could not mark stream as read: %s", streamID)
 	}
 
 	return nil

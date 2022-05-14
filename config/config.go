@@ -1,11 +1,11 @@
-package main
+package config
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 	"path"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -22,33 +22,28 @@ type config struct {
 	OAuth2Conf   *oauth2.Config
 }
 
-func loadConfig(filePath string) *config {
+func loadConfig(filePath string) (cfg *config, err error) {
 
 	// Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		log.Println("Config file does not exist:", filePath)
-		log.Fatalln(err)
+		return nil, errors.Wrapf(err, "Config file does not exist: %s", filePath)
 	}
 
 	configFile, err := os.ReadFile(filePath)
 	if err != nil {
-		log.Println("An error occurred while trying to read the config file:", filePath)
-		log.Fatalln(err)
+		return nil, errors.Wrapf(err, "An error occurred while trying to read config file: %s", filePath)
 	}
-
-	var cfg config
 
 	if err := json.Unmarshal(configFile, &cfg); err != nil {
-		log.Println("Unable to parse contents of JSON config file:", filePath)
-		log.Fatalln(err)
+		return nil, errors.Wrapf(err, "Unable to unmarshal JSON content: %s", filePath)
 	}
 
-	validateConfig(&cfg)
+	validateConfig(cfg)
 
-	return &cfg
+	return cfg, nil
 }
 
-func validateConfig(c *config) {
+func validateConfig(c *config) error {
 
 	var fieldsMissing []string
 	if c.AppID == "" {
@@ -60,12 +55,11 @@ func validateConfig(c *config) {
 	}
 
 	if len(fieldsMissing) > 0 {
-		log.Println("The following fields appear to be missing from your config file:")
-		for _, configKey := range fieldsMissing {
-			log.Println("-", configKey)
-		}
-		log.Fatalln("Please ensure all required config values are present")
+		errMsg := "The following fields appear missing from config:"
+		return errors.Wrap(errors.New(errMsg), strings.Join(fieldsMissing, "\n"))
 	}
+
+	return nil
 }
 
 func (c *config) writeCfgFile(filePath string, oauth2Resp *oauth2.Token) error {
@@ -81,11 +75,11 @@ func (c *config) writeCfgFile(filePath string, oauth2Resp *oauth2.Token) error {
 
 	jsonData, err := json.MarshalIndent(&cfg, "", "  ")
 	if err != nil {
-		return errors.Wrapf(err, "Unable to parse JSON data", cfg)
+		return errors.Wrapf(err, "Unable to parse JSON data: %#v", cfg)
 	}
 
 	if err := os.WriteFile(filePath, jsonData, 0600); err != nil {
-		return errors.Wrapf(err, "Unable to write JSON data to config file:", filePath)
+		return errors.Wrapf(err, "Unable to write JSON data to config file: %v", filePath)
 	}
 
 	return nil

@@ -1,11 +1,17 @@
-package main
+package subscription
 
 import (
-	"context"
 	"encoding/json"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
+)
+
+const (
+	addSubURL         = "https://www.inoreader.com/reader/api/0/subscription/quickadd"
+	editSubURL        = "https://www.inoreader.com/reader/api/0/subscription/edit"
+	unreadCountersURL = "https://www.inoreader.com/reader/api/0/unread-count"
+	subListURL        = "https://www.inoreader.com/reader/api/0/subscription/list"
 )
 
 // QuickAdd response
@@ -108,111 +114,4 @@ func GetUnreadCounters(rc *resty.Client) (uc *UnreadCounters, err error) {
 	}
 
 	return uc, nil
-}
-
-// ExecAddSub -- Execute quick add subscription
-func ExecAddSub(url string) error {
-
-	streamID := "feed/" + url
-	params := map[string]string{
-		"quickadd": streamID,
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	rc := oauth2RestyClient(ctx)
-	defer cancel()
-
-	quickAdd, err := QuickAddSubscription(rc, params)
-	if err != nil {
-		return err
-	}
-
-	if quickAdd.NumResults == 0 {
-		return errors.New("Please check if the URL is correct")
-	}
-
-	return nil
-}
-
-// ExecUnsubscribe -- Execute unsubscribe for subscription at URL
-func ExecUnsubscribe(url string) error {
-
-	streamID := "feed/" + url
-	params := map[string]string{
-		"ac": "unsubscribe",
-		"s":  streamID,
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	rc := oauth2RestyClient(ctx)
-	defer cancel()
-
-	if err := EditSubscription(rc, params); err != nil {
-		return errors.Wrapf(err, "Unable to unsubscribe from subscription %s", url)
-	}
-
-	return nil
-}
-
-// ExecSetSubTitle -- Execute EditSubcription to set the subscription's title
-func ExecSetSubTitle(title string, url string) error {
-
-	streamID := "feed/" + url
-	params := map[string]string{
-		"ac": "edit",
-		"s":  streamID,
-		"t":  title,
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	rc := oauth2RestyClient(ctx)
-	defer cancel()
-
-	if err := EditSubscription(rc, params); err != nil {
-		return errors.Wrapf(err, "Unable to set title %s on subscription %s", title, url)
-	}
-
-	return nil
-}
-
-// ExecAddSubToFolder -- Execute EditSubscription to add a subscription to specified folder
-func ExecAddSubToFolder(folder string, url string) error {
-
-	streamID := "feed/" + url
-	params := map[string]string{
-		"ac": "edit",
-		"s":  streamID,
-		"a":  folder,
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	rc := oauth2RestyClient(ctx)
-	defer cancel()
-
-	if err := EditSubscription(rc, params); err != nil {
-		return errors.Wrapf(err, "Unable to add subscription %s to folder %s", url, folder)
-	}
-
-	return nil
-}
-
-// ExecRemSubFromFolder --- Execute EditSubscription to remove subscription from folder
-func ExecRemSubFromFolder(folder string, url string) error {
-
-	streamID := "feed/" + url
-	params := map[string]string{
-		"ac": "edit",
-		"s":  streamID,
-		"r":  folder,
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	rc := oauth2RestyClient(ctx)
-	defer cancel()
-
-	if err := EditSubscription(rc, params); err != nil {
-		return errors.Wrapf(err, "Unable to remove subscription %s from folder %s", url, folder)
-	}
-
-	return nil
 }

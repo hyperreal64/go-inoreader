@@ -35,9 +35,9 @@ func GetUserInfo(rc *resty.Client) (userinfo *UserInfo, err error) {
 		return nil, errors.Wrap(err, "Could not get user info")
 	}
 
-    if err := resty.Unmarshalc(rc, "application/json", resp.Body(), &userinfo); err != nil {
-        return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", &userinfo)
-    }
+	if err := resty.Unmarshalc(rc, "application/json", resp.Body(), &userinfo); err != nil {
+		return nil, errors.Wrapf(err, "Could not unmarshal JSON object: %v", &userinfo)
+	}
 
 	return userinfo, nil
 }

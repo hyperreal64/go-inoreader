@@ -76,3 +76,5 @@ freeCodeCamp.org News (https://www.freecodecamp.org/news/rss/)
 Enable Sysadmin (https://www.redhat.com/sysadmin/rss.xml)
 Blogs on Drew DeVault's blog (https://drewdevault.com/blog/index.xml)
 ```
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N2CT2JG)

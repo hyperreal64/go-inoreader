@@ -12,6 +12,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// Config file values
 type config struct {
 	AppID        string    `json:"app_id"`
 	AppKey       string    `json:"app_key"`
@@ -22,6 +23,7 @@ type config struct {
 	OAuth2Conf   *oauth2.Config
 }
 
+// Loads configuration file located at `filePath` into a *config struct.
 func loadConfig(filePath string) (cfg *config, err error) {
 
 	// Check if file exists
@@ -43,6 +45,7 @@ func loadConfig(filePath string) (cfg *config, err error) {
 	return cfg, nil
 }
 
+// Verifies that config values are valid.
 func validateConfig(c *config) error {
 
 	var fieldsMissing []string
@@ -62,6 +65,8 @@ func validateConfig(c *config) error {
 	return nil
 }
 
+// Mutates *config struct state, adds Oauth data, and writes the resulting struct
+// data to the go-inoreader.json config file.
 func (c *config) writeCfgFile(filePath string, oauth2Resp *oauth2.Token) error {
 
 	cfg := &config{

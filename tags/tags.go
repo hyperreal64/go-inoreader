@@ -5,13 +5,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+// API URLs for resty.Client requests
 const (
 	tagListURL   = "https://www.inoreader.com/reader/api/0/tag/list?types=1&counts=1"
 	renameTagURL = "https://www.inoreader.com/reader/api/0/rename-tag"
 	editTagURL   = "https://www.inoreader.com/reader/api/0/edit-tag"
 )
 
-// TagFolderList response
+// TagFolderList JSON response
 type TagFolderList struct {
 	Tags []struct {
 		ID          string `json:"id"`
@@ -21,7 +22,8 @@ type TagFolderList struct {
 	} `json:"tags"`
 }
 
-// GetTagList --- Get list of tags
+// Get list of tags. Sends a GET request and returns JSON response as
+// TagFolderList struct.
 func GetTagList(rc *resty.Client) (tfl *TagFolderList, err error) {
 
 	resp, err := rc.R().Get(tagListURL)
@@ -36,7 +38,7 @@ func GetTagList(rc *resty.Client) (tfl *TagFolderList, err error) {
 	return tfl, nil
 }
 
-// RenameTag --- Rename tag specified in query parameters
+// Rename tag specified in query parameters. Sends a POST request.
 func RenameTag(rc *resty.Client, params map[string]string) error {
 
 	_, err := rc.R().
@@ -63,7 +65,7 @@ func RenameTag(rc *resty.Client, params map[string]string) error {
 // 	return
 // }
 
-// EditTag -- Edit tag specified in query parameters
+// Edit tag specified in query parameters. Sends a POST request.
 func EditTag(rc *resty.Client, params map[string]string) error {
 
 	_, err := rc.R().

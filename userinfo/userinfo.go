@@ -7,7 +7,7 @@ import (
 
 const userInfoURL = "https://www.inoreader.com/reader/api/0/user-info"
 
-// UserInfo response
+// UserInfo JSON response
 // Output looks like:
 // {
 //     "userId": "1005869311",
@@ -28,7 +28,8 @@ type UserInfo struct {
 	IsMultiLoginEnabled bool   `json:"isMultiLoginEnabled"`
 }
 
-// GetUserInfo --- Gets the user info
+// Gets the user info. Sends a GET request and returns JSON response
+// as a UserInfo struct.
 func GetUserInfo(rc *resty.Client) (userinfo *UserInfo, err error) {
 	resp, err := rc.R().Get(userInfoURL)
 	if err != nil {

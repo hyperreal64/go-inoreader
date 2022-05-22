@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// API URLs for resty.Client requests
 const (
 	addSubURL         = "https://www.inoreader.com/reader/api/0/subscription/quickadd"
 	editSubURL        = "https://www.inoreader.com/reader/api/0/subscription/edit"
@@ -14,7 +15,7 @@ const (
 	subListURL        = "https://www.inoreader.com/reader/api/0/subscription/list"
 )
 
-// QuickAdd response
+// QuickAdd JSON response
 type QuickAdd struct {
 	Query      string `json:"query"`
 	NumResults int    `json:"numResults"`
@@ -22,7 +23,7 @@ type QuickAdd struct {
 	StreamName string `json:"streamName"`
 }
 
-// UnreadCounters response
+// UnreadCounters JSON response
 type UnreadCounters struct {
 	Max          int `json:"max"`
 	Unreadcounts []struct {
@@ -32,7 +33,7 @@ type UnreadCounters struct {
 	} `json:"unreadcounts"`
 }
 
-// SubscriptionList response
+// SubscriptionList JSON response
 type SubscriptionList struct {
 	Subscriptions []struct {
 		ID            string        `json:"id"`
@@ -47,12 +48,9 @@ type SubscriptionList struct {
 	} `json:"subscriptions"`
 }
 
-// QuickAddSubscription --- Quick add a subscription as specified in query parameters.
-// Unlike other POST requests to the Inoreader API server, this one returns a JSON response.
-// Parameters:
-// rc --> resty.Client
-// params --> query parameters that contain the subscription's URL
-// Returns: QuickAdd as JSON object, or error
+// Quick add a subscription as specified in the query parameters.
+// Unlike other POST requests to the Inoreader API server, this one returns
+// a JSON response, which gets stored into a QuickAdd struct.
 func QuickAddSubscription(rc *resty.Client, params map[string]string) (quickadd *QuickAdd, err error) {
 
 	resp, err := rc.R().
@@ -69,11 +67,7 @@ func QuickAddSubscription(rc *resty.Client, params map[string]string) (quickadd 
 	return quickadd, nil
 }
 
-// EditSubscription -- Edit subscription specified in query parameters.
-// Parameters:
-// rc --> resty.Client
-// params --> query parameters that contain subscription URL and an action to take
-// Returns: error on error
+// Edit subscription specified in query parameters. Sends a POST request.
 func EditSubscription(rc *resty.Client, params map[string]string) error {
 
 	_, err := rc.R().
@@ -86,7 +80,8 @@ func EditSubscription(rc *resty.Client, params map[string]string) error {
 	return nil
 }
 
-// GetSubscriptionList -- Get list of subscriptions.
+// Get list of subscriptions. Sends a GET request and returns JSON response as
+// SubscriptionList struct.
 func GetSubscriptionList(rc *resty.Client) (sublist *SubscriptionList, err error) {
 
 	resp, err := rc.R().Get(subListURL)
@@ -101,7 +96,8 @@ func GetSubscriptionList(rc *resty.Client) (sublist *SubscriptionList, err error
 	return sublist, nil
 }
 
-// GetUnreadCounters -- Get the number of unread items for subscriptions.
+// Get the number of unread items for subscriptions. Sends a GET request and
+// returns JSON response as UnreadCounters struct.
 func GetUnreadCounters(rc *resty.Client) (uc *UnreadCounters, err error) {
 
 	resp, err := rc.R().Get(unreadCountersURL)

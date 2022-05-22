@@ -4,10 +4,7 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-// const (
-// 	starredTag = "user/-/state/com.google/starred"
-// 	savedTag   = "user/-/state/com.google/saved-web-pages"
-// )
+// API URLs for resty.Client requests
 const (
 	streamContentsURL = "https://www.inoreader.com/reader/api/0/stream/contents"
 	itemIDsURL        = "https://www.inoreader.com/reader/api/0/stream/items/ids"
@@ -16,7 +13,7 @@ const (
 	markAllReadURL    = "https://www.inoreader.com/reader/api/0/mark-all-as-read"
 )
 
-// StreamContents response
+// StreamContents JSON response
 type StreamContents struct {
 	Direction   string `json:"direction"`
 	ID          string `json:"id"`
@@ -31,7 +28,7 @@ type StreamContents struct {
 	Continuation string `json:"continuation"`
 }
 
-// Item response
+// Item JSON response
 type Item struct {
 	CrawlTimeMsec string   `json:"crawlTimeMsec"`
 	TimestampUsec string   `json:"timestampUsec"`
@@ -51,44 +48,45 @@ type Item struct {
 	Origin      *Origin       `json:"origin"`
 }
 
-// Origin response
+// Origin JSON response
 type Origin struct {
 	StreamID string `json:"streamId"`
 	Title    string `json:"title"`
 	HTMLURL  string `json:"htmlUrl"`
 }
 
-// ItemIDs response
+// ItemIDs JSON response
 type ItemIDs struct {
 	Items        []interface{} `json:"items"`
 	ItemRefs     []interface{} `json:"itemRefs"`
 	Continuation string        `json:"continuation"`
 }
 
-// ItemRefs response
+// ItemRefs JSON response
 type ItemRefs struct {
 	ID              string        `json:"id"`
 	DirectStreamIds []interface{} `json:"directStreamIds"`
 	TimestampUsec   string        `json:"timestampUsec"`
 }
 
-// StreamPreferenceList response
+// StreamPreferenceList JSON response
 type StreamPreferenceList struct {
 	Streamprefs interface{} `json:"streamprefs"`
 }
 
-// Streamprefs response
+// Streamprefs JSON response
 type Streamprefs struct {
 	UserStateComGoogleRoot []interface{} `json:"user/-/state/com.google/root"`
 }
 
-// UserStateComGoogleRoot response
+// UserStateComGoogleRoot JSON response
 type UserStateComGoogleRoot struct {
 	ID    string `json:"id"`
 	Value string `json:"value"`
 }
 
-// GetStreamContents -- Gets stream contents based on set query parameters
+// Gets stream contents based on set query parameters and returns a struct
+// containing StreamContents JSON response
 func GetStreamContents(rc *resty.Client, params map[string]string) (sc *StreamContents, err error) {
 
 	resp, err := rc.R().
@@ -106,7 +104,7 @@ func GetStreamContents(rc *resty.Client, params map[string]string) (sc *StreamCo
 	return sc, nil
 }
 
-// MarkAllAsRead -- Marks all items in stream as read; stream is specified in query parameters
+// Marks all items in stream as read; stream is specified in query parameters
 func MarkAllAsRead(rc *resty.Client, params map[string]string) error {
 
 	_, err := rc.R().
